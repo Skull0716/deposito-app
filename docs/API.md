@@ -934,6 +934,37 @@ Copia completa y consistente de la base, para guardarla fuera del iPad.
 
 Restaurar un respaldo lo hace la app **antes** de arrancar el servidor (al configurar la caja): reemplaza el archivo de la base. No hay endpoint para restaurar con el servidor andando.
 
+### Diagnóstico
+
+Para dar soporte sin estar en el depósito. Todo es **Solo caja**.
+
+#### Estado del servidor
+
+`GET /api/v1/diagnostico` · Solo caja
+
+```json
+{
+  "version": "0.1.0",
+  "iniciado": "2026-11-03T14:02:11Z",
+  "esquema": 6,
+  "bytesBaseDatos": 1843200,
+  "conexiones": 3,
+  "terminalesConectadas": 2,
+  "ultimosErrores": ["2026-11-03T15:40:02Z POST /api/v1/ventas: Bad state: ..."]
+}
+```
+
+- `version`: la misma que manda `conexion.lista`.
+- `iniciado`: cuándo arrancó el servidor. `esquema`: la última migración aplicada.
+- `conexiones`: WebSocket abiertos, contando los de la caja. `terminalesConectadas`: terminales distintas con al menos uno abierto.
+- `ultimosErrores`: hasta 50 desde que arrancó el servidor, el más reciente primero. Se pierden al reiniciar; el log los conserva.
+
+#### Descargar el log
+
+`GET /api/v1/diagnostico/bitacora` · Solo caja
+
+- Respuesta `200`: texto (`text/plain; charset=utf-8`) con `content-disposition: attachment; filename="anaquel-AAAAMMDD-HHMMSS.log"`. Trae las copias rotadas, de la más vieja a la actual. Vacío si el servidor no escribe log a archivo (servidor de desarrollo o web).
+
 ## WebSocket
 
 `GET /api/v1/ws`
@@ -976,4 +1007,4 @@ Se sigue mandando también `producto.actualizado`, así que una pantalla que ya 
 
 Se documentarán aquí, en este orden:
 
-- **Sprint 4:** reportes, resurtido y diagnóstico.
+- **Sprint 4:** reportes y resurtido.

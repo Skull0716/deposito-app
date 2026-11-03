@@ -1304,6 +1304,24 @@ class ApiFalsa implements Api {
     nombre: 'anaquel-20261002-183000.db',
   );
 
+  @override
+  Future<Diagnostico> obtenerDiagnostico() async => const Diagnostico(
+    version: versionServidor,
+    iniciado: '2026-10-02T14:00:00Z',
+    esquema: 6,
+    bytesBaseDatos: 1843200,
+    conexiones: 2,
+    terminalesConectadas: 1,
+    ultimosErrores: [],
+  );
+
+  @override
+  Future<({String texto, String nombre})> descargarBitacora() async => (
+    texto:
+        '2026-10-02T14:00:00Z INFO Servidor $versionServidor en 0.0.0.0:8080\n',
+    nombre: 'anaquel-20261002-183000.log',
+  );
+
   void _moverEnvases(String formato, {int bodega = 0, int prestados = 0}) {
     final b = envases[formato]!;
     envases[formato] = BalanceEnvase(

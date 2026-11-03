@@ -26,6 +26,7 @@ import 'db/repositorio_usuarios.dart';
 import 'rutas/rutas_ajustes.dart';
 import 'rutas/rutas_alertas.dart';
 import 'rutas/rutas_caja.dart';
+import 'rutas/rutas_diagnostico.dart';
 import 'rutas/rutas_productos.dart';
 import 'rutas/rutas_terminales.dart';
 import 'rutas/rutas_usuarios.dart';
@@ -34,6 +35,7 @@ import 'seed/fotos_ejemplo.dart';
 import 'servicios/servicio_ajustes.dart';
 import 'servicios/servicio_alertas.dart';
 import 'servicios/servicio_caja.dart';
+import 'servicios/servicio_diagnostico.dart';
 import 'servicios/servicio_productos.dart';
 import 'servicios/servicio_terminales.dart';
 import 'servicios/servicio_usuarios.dart';
@@ -197,6 +199,14 @@ class DepositoServer {
         reloj: _reloj,
       );
 
+      final diagnostico = ServicioDiagnostico(
+        db: db,
+        hub: hub,
+        bitacora: bitacora,
+        iniciado: _reloj(),
+        reloj: _reloj,
+      );
+
       final pedidos = ServicioPedidos(
         db: db,
         repoProductos: repoProductos,
@@ -241,6 +251,7 @@ class DepositoServer {
       montarRutasUsuarios(router, usuarios);
       montarRutasAjustes(router, servicioAjustes);
       montarRutasAlertas(router, alertas);
+      montarRutasDiagnostico(router, diagnostico);
 
       final manejador = const Pipeline()
           .addMiddleware(registrarPeticiones(bitacora))

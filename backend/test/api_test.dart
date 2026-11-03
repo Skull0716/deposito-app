@@ -391,6 +391,51 @@ void main() {
     });
   });
 
+  group('diagnóstico', () {
+    test('la caja ve versión, esquema, base y conexiones', () async {
+      final clave = await s.registrarTerminal();
+      final canal = IOWebSocketChannel.connect(
+        s.uri('/api/v1/ws').replace(scheme: 'ws'),
+        headers: {'x-clave-terminal': clave},
+      );
+      await canal.ready;
+      addTearDown(canal.sink.close);
+      await canal.stream.first; // conexion.lista: ya quedó registrada
+
+      final r = await s.get('/api/v1/diagnostico');
+      expect(r.statusCode, 200);
+      final d = Diagnostico.fromJson(json(r));
+      expect(d.version, versionServidor);
+      expect(d.esquema, greaterThan(0));
+      expect(d.bytesBaseDatos, greaterThan(0));
+      expect(d.conexiones, 1);
+      expect(d.terminalesConectadas, 1);
+      expect(d.ultimosErrores, isEmpty);
+    });
+
+    test('la bitácora se descarga como texto', () async {
+      final r = await s.get('/api/v1/diagnostico/bitacora');
+      expect(r.statusCode, 200);
+      expect(r.headers['content-type'], 'text/plain; charset=utf-8');
+      expect(
+        r.headers['content-disposition'],
+        matches(RegExp(r'^attachment; filename="anaquel-\d{8}-\d{6}\.log"$')),
+      );
+    });
+
+    test('una terminal no puede pedirlo', () async {
+      final clave = await s.registrarTerminal();
+      for (final ruta in [
+        '/api/v1/diagnostico',
+        '/api/v1/diagnostico/bitacora',
+      ]) {
+        final r = await s.get(ruta, clave: clave);
+        expect(r.statusCode, 403);
+        expect(codigoError(r), 'solo_caja');
+      }
+    });
+  });
+
   group('WebSocket', () {
     Future<StreamIterator<Map<String, Object?>>> conectar(String clave) async {
       final canal = IOWebSocketChannel.connect(
@@ -488,6 +533,46 @@ void main() {
         expect(alerta['diasParaCaducar'], isNull);
       },
     );
+
+    // Mide la red local de la máquina, no la Wi-Fi: con los dispositivos
+    // reales hay que repetirla en el depósito (plan, prueba de rendimiento).
+    test('una venta llega a dos terminales en menos de 500 ms', () async {
+      final id = json(
+        await s.post('/api/v1/productos', productoValido()),
+      )['id'];
+      await s.abrirCaja();
+      final terminales = [
+        for (final nombre in ['Terminal S24', 'Terminal iPhone'])
+          await conectar(await s.registrarTerminal(nombre)),
+      ];
+      for (final t in terminales) {
+        expect(await t.moveNext(), isTrue); // conexion.lista
+      }
+
+      Future<void> esperarVenta(StreamIterator<Map<String, Object?>> t) async {
+        while (await t.moveNext()) {
+          if (t.current['tipo'] == 'venta.registrada') return;
+        }
+        fail('Se cerró sin venta.registrada');
+      }
+
+      final reloj = Stopwatch()..start();
+      final llegadas = Future.wait(terminales.map(esperarVenta));
+      final venta = await s.post(
+        '/api/v1/ventas',
+        {
+          'metodo': 'efectivo',
+          'envModo': 'na',
+          'lineas': [
+            {'productoId': id, 'unidad': 'pieza', 'cantidad': 1},
+          ],
+        },
+        cabeceras: {cabeceraIdempotencia: 'latencia-1'},
+      );
+      expect(venta.statusCode, 201);
+      await llegadas.timeout(const Duration(seconds: 2));
+      expect(reloj.elapsedMilliseconds, lessThan(500));
+    });
 
     test('sin clave no conecta', () async {
       final canal = IOWebSocketChannel.connect(

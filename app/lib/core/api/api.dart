@@ -216,6 +216,12 @@ abstract interface class Api {
   /// La base completa como archivo SQLite, con su nombre sugerido.
   Future<({Uint8List bytes, String nombre})> descargarRespaldo();
 
+  /// Estado del servidor para la pantalla de Diagnóstico.
+  Future<Diagnostico> obtenerDiagnostico();
+
+  /// El log del servidor como texto, con su nombre sugerido.
+  Future<({String texto, String nombre})> descargarBitacora();
+
   Future<CodigoEmparejamiento> crearCodigoEmparejamiento();
 
   Future<List<Terminal>> listarTerminales();
@@ -763,6 +769,26 @@ class ApiHttp implements Api {
             RegExp('filename="([^"]+)"').firstMatch(disposicion)?[1] ??
             'anaquel.db';
         return (bytes: Uint8List.fromList(r.data!), nombre: nombre);
+      });
+
+  @override
+  Future<Diagnostico> obtenerDiagnostico() => _pedir(() async {
+    final r = await _dio.get<Map<String, Object?>>('/api/v1/diagnostico');
+    return Diagnostico.fromJson(r.data!);
+  });
+
+  @override
+  Future<({String texto, String nombre})> descargarBitacora() =>
+      _pedir(() async {
+        final r = await _dio.get<String>(
+          '/api/v1/diagnostico/bitacora',
+          options: Options(responseType: ResponseType.plain),
+        );
+        final disposicion = r.headers.value('content-disposition') ?? '';
+        final nombre =
+            RegExp('filename="([^"]+)"').firstMatch(disposicion)?[1] ??
+            'anaquel.log';
+        return (texto: r.data ?? '', nombre: nombre);
       });
 
   @override
