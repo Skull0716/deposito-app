@@ -18,7 +18,8 @@ class Bitacora {
   });
 
   /// Bitácora que no escribe nada (pruebas).
-  Bitacora.silenciosa() : this(consola: false);
+  Bitacora.silenciosa({Reloj reloj = relojSistema})
+    : this(consola: false, reloj: reloj);
 
   final String? rutaArchivo;
   final bool consola;
@@ -40,6 +41,22 @@ class Bitacora {
       '${instanteIso(_reloj())} $mensaje${error == null ? '' : ': $error'}',
     );
     if (ultimosErrores.length > 50) ultimosErrores.removeAt(0);
+  }
+
+  /// El log completo, de la copia rotada más vieja al archivo actual. Vacío
+  /// si no se escribe a archivo.
+  String exportar() {
+    final ruta = rutaArchivo;
+    if (ruta == null) return '';
+    final texto = StringBuffer();
+    for (final r in [
+      for (var i = archivosRotados; i >= 1; i--) '$ruta.$i',
+      ruta,
+    ]) {
+      final archivo = File(r);
+      if (archivo.existsSync()) texto.write(archivo.readAsStringSync());
+    }
+    return texto.toString();
   }
 
   void _escribir(NivelLog nivel, String mensaje) {

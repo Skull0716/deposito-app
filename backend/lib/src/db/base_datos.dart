@@ -36,3 +36,14 @@ T transaccion<T>(Database db, T Function() accion) {
     rethrow;
   }
 }
+
+/// Bytes que ocupa la base (páginas por tamaño de página; sirve también en
+/// memoria).
+int tamanoBaseDatos(Database db) =>
+    db
+            .select(
+              'SELECT page_count * page_size AS b '
+              'FROM pragma_page_count(), pragma_page_size()',
+            )
+            .first['b']
+        as int;
