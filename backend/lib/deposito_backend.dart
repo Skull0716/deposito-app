@@ -16,6 +16,7 @@ export 'src/modelos/alerta.dart';
 export 'src/modelos/caja.dart';
 export 'src/modelos/envase.dart';
 export 'src/modelos/evento.dart';
+export 'src/modelos/importacion.dart';
 export 'src/modelos/movimiento.dart';
 export 'src/modelos/producto.dart';
 export 'src/modelos/terminal.dart';

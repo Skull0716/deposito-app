@@ -330,6 +330,65 @@ El cuerpo es la imagen sin envolver (no `multipart`), con `Content-Type` `image/
 
 - Respuesta `200`: el producto con `foto: null`. Emite `producto.actualizado`. `404 no_encontrado`.
 
+#### Importar desde CSV
+
+`POST /api/v1/productos/importar` · Solo caja
+
+Carga o actualiza muchos productos de una vez desde una hoja de cálculo guardada como CSV. Plantilla: [`docs/plantilla_inventario.csv`](plantilla_inventario.csv).
+
+```json
+{ "csv": "codigo,nombre,categoria,precio,existencia\n7501064191015,Victoria Mega,cerveza,42.00,66\n", "soloRevisar": true }
+```
+
+- `csv`: el texto del archivo, en UTF-8, hasta 2 MB y 5000 renglones de productos.
+- `soloRevisar`: obligatorio. `true` revisa y dice qué haría sin guardar nada; `false` guarda.
+
+**El archivo**
+
+- El primer renglón son los nombres de las columnas, en cualquier orden y sin distinguir mayúsculas. Se separa con coma o con punto y coma (Excel en español guarda con `;`). Las celdas pueden ir entre comillas.
+- Obligatorias: `codigo`, `nombre`, `categoria`, `precio`. Opcionales: `presentacion`, `precioCaja`, `piezasPorCaja`, `existencia`, `minimo`, `envase`, `caducidad`. Una columna con otro nombre es error.
+- Mismas reglas que [Crear](#crear), salvo:
+  - `precio` y `precioCaja` van **en pesos**: `42`, `42.50`, `$1,234.50`. Los centavos van con punto; `42,50` es error porque no se sabe si son pesos o centavos.
+  - `caducidad` acepta `AAAA-MM-DD` o `DD/MM/AAAA`.
+  - `existencia` son piezas.
+- Los renglones vacíos se ignoran.
+
+**Qué hace cada renglón** (se busca el producto activo por `codigo`)
+
+| | Producto nuevo | Producto que ya existe |
+| --- | --- | --- |
+| Celda con valor | Se usa | Reemplaza el valor actual |
+| Celda vacía o columna ausente | Valor por omisión de [Crear](#crear) | No cambia |
+| `existencia` | Existencia inicial, con movimiento `inicial` | Se fija a ese número, con movimiento `ajuste` por la diferencia (como un conteo) |
+
+Los movimientos llevan la nota `Importación CSV`. Un código repetido dentro del archivo es error en el segundo renglón.
+
+**Todo o nada:** si un renglón tiene error, no se guarda ninguno.
+
+- Respuesta `200`, en los dos modos:
+
+```json
+{
+  "guardado": false,
+  "creados": 118,
+  "actualizados": 2,
+  "sinCambios": 5,
+  "cambiosExistencia": [
+    { "renglon": 4, "codigo": "7501064191015", "nombre": "Victoria Mega", "antes": 66, "despues": 80 }
+  ],
+  "errores": [
+    { "renglon": 14, "codigo": "7501055300846", "campos": { "precio": "Debe ser un precio en pesos con punto para los centavos, como 42.50" } }
+  ]
+}
+```
+
+- `guardado`: `true` solo si `soloRevisar` es `false` y no hubo errores.
+- `renglon` es el número de renglón del archivo, como lo muestra Excel: el encabezado es el 1.
+- `cambiosExistencia`: los productos que ya existían y cambian de existencia, para revisarlos antes de guardar.
+- `errores`: por renglón, con la columna que falló. `codigo` es `null` si no se pudo leer.
+- Al guardar emite `producto.actualizado` por cada producto creado o cambiado, y `alerta.nueva` si corresponde.
+- `400 datos_invalidos` en `csv` si el archivo no se puede leer: vacío, demasiado grande, sin encabezado, falta una columna obligatoria o tiene una desconocida.
+
 ### Ventas
 
 #### Registrar venta

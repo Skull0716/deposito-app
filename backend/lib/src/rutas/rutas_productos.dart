@@ -3,6 +3,7 @@ import 'package:shelf_router/shelf_router.dart';
 
 import '../comun/json.dart';
 import '../comun/sesion.dart';
+import '../modelos/importacion.dart';
 import '../servicios/servicio_productos.dart';
 
 /// Las rutas solo leen la petición y responden; la lógica está en el servicio.
@@ -30,6 +31,19 @@ void montarRutasProductos(Router r, ServicioProductos productos) {
       origen: sesion.nombre,
     );
     return respuestaJson(producto.toJson(), estado: 201);
+  });
+
+  r.post('/api/v1/productos/importar', (Request p) async {
+    final sesion = exigirCaja(p);
+    final datos = await leerObjetoJsonHasta(
+      p,
+      // El CSV viaja dentro de un JSON: escapar comillas y saltos lo crece.
+      max: maxCaracteresCsv * 2,
+      campo: 'csv',
+    );
+    return respuestaJson(
+      productos.importar(datos, origen: sesion.nombre).toJson(),
+    );
   });
 
   r.put('/api/v1/productos/<id>', (Request p, String id) async {

@@ -303,6 +303,60 @@ void main() {
     });
   });
 
+  group('importar CSV', () {
+    const csv =
+        'codigo,nombre,categoria,precio,existencia,minimo\n'
+        '7501064191015,Victoria Mega,cerveza,42.00,66,36\n'
+        '7501055300846,Coca-Cola,refresco,18.50,24,12\n';
+
+    test('revisa, guarda y responde con el formato del contrato', () async {
+      final revisar = await s.post('/api/v1/productos/importar', {
+        'csv': csv,
+        'soloRevisar': true,
+      });
+      expect(revisar.statusCode, 200, reason: revisar.body);
+      expect(json(revisar), {
+        'guardado': false,
+        'creados': 2,
+        'actualizados': 0,
+        'sinCambios': 0,
+        'cambiosExistencia': <Object?>[],
+        'errores': <Object?>[],
+      });
+      expect(json(await s.get('/api/v1/productos'))['productos'], isEmpty);
+
+      final guardar = await s.post('/api/v1/productos/importar', {
+        'csv': csv,
+        'soloRevisar': false,
+      });
+      expect(json(guardar)['guardado'], isTrue);
+      final productos = json(await s.get('/api/v1/productos'))['productos'];
+      expect((productos as List).map((p) => (p as Map)['precio']), [
+        1850,
+        4200,
+      ]);
+    });
+
+    test('una terminal no puede importar', () async {
+      final clave = await s.registrarTerminal();
+      final r = await s.post('/api/v1/productos/importar', {
+        'csv': csv,
+        'soloRevisar': true,
+      }, clave: clave);
+      expect(r.statusCode, 403);
+      expect(codigoError(r), 'solo_caja');
+    });
+
+    test('un archivo sin columna obligatoria es 400 en csv', () async {
+      final r = await s.post('/api/v1/productos/importar', {
+        'csv': 'codigo,nombre\n1,A\n',
+        'soloRevisar': true,
+      });
+      expect(r.statusCode, 400);
+      expect(camposError(r), {'csv': 'Faltan las columnas: categoria, precio'});
+    });
+  });
+
   group('alertas', () {
     test(
       'una terminal lista las alertas con el formato del contrato',

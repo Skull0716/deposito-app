@@ -35,6 +35,40 @@ void main() {
     expect(productos.map((p) => p.nombre), contains('Victoria Mega'));
   });
 
+  test('la caja importa un CSV: revisa, guarda y ajusta existencias', () async {
+    final victoria = (await caja.listarProductos()).firstWhere(
+      (p) => p.nombre == 'Victoria Mega',
+    );
+    final csv =
+        'codigo,nombre,categoria,precio,existencia\n'
+        '${victoria.codigo},Victoria Mega,cerveza,45,${victoria.existenciaPiezas + 4}\n'
+        '7509999999999,Cacahuates,botana,\$1,234.50,7\n';
+
+    final revision = await caja.importarProductos(csv, soloRevisar: true);
+    expect(revision.guardado, isFalse);
+    expect(
+      revision.errores.single.renglon,
+      3,
+    ); // $1,234.50 sin comillas corre las columnas
+
+    final bien = csv.replaceFirst(r'$1,234.50', r'"$1,234.50"');
+    final r = await caja.importarProductos(bien, soloRevisar: false);
+    expect(r.guardado, isTrue);
+    expect((r.creados, r.actualizados), (1, 1));
+    expect(r.cambiosExistencia.single.despues, victoria.existenciaPiezas + 4);
+
+    final productos = await caja.listarProductos();
+    expect(
+      productos.firstWhere((p) => p.codigo == '7509999999999').precio,
+      123450,
+    );
+
+    await expectLater(
+      caja.importarProductos('codigo\n1', soloRevisar: true),
+      throwsA(isA<FalloApi>().having((f) => f.campos.keys, 'campos', ['csv'])),
+    );
+  });
+
   test('las alertas del servidor son las que calcula la app', () async {
     final r = await caja.listarAlertas(dias: 60);
     expect(r.dias, 60);

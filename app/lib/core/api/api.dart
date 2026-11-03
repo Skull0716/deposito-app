@@ -58,6 +58,15 @@ abstract interface class Api {
 
   Future<Producto> borrarFoto(String id);
 
+  /// Crea o actualiza productos desde el texto de un CSV. Con [soloRevisar]
+  /// dice qué haría sin guardar. Con algún renglón con error no se guarda
+  /// nada (`guardado: false`). Un archivo que no se puede leer es
+  /// `datos_invalidos` en `csv`.
+  Future<ResultadoImportacion> importarProductos(
+    String csv, {
+    required bool soloRevisar,
+  });
+
   /// Las últimas 100 ventas, del folio más nuevo al más viejo. Con [turno]
   /// (`actual` o un id `tur_...`), solo las de ese turno; con [usuario],
   /// solo las que cobró esa persona.
@@ -391,6 +400,18 @@ class ApiHttp implements Api {
   @override
   Future<Producto> borrarFoto(String id) =>
       _producto(_dio.delete('/api/v1/productos/$id/foto'));
+
+  @override
+  Future<ResultadoImportacion> importarProductos(
+    String csv, {
+    required bool soloRevisar,
+  }) => _pedir(() async {
+    final r = await _dio.post<Map<String, Object?>>(
+      '/api/v1/productos/importar',
+      data: {'csv': csv, 'soloRevisar': soloRevisar},
+    );
+    return ResultadoImportacion.fromJson(r.data!);
+  });
 
   @override
   Future<List<ResumenVenta>> listarVentas({String? turno, String? usuario}) =>

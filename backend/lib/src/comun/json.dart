@@ -38,6 +38,23 @@ Future<Map<String, Object?>> leerObjetoJsonOpcional(Request peticion) async {
   throw ErrorApi.jsonInvalido();
 }
 
+/// Como [leerObjetoJson], pero sin leer más de [max] bytes: para cuerpos
+/// grandes como un CSV de inventario.
+Future<Map<String, Object?>> leerObjetoJsonHasta(
+  Request peticion, {
+  required int max,
+  required String campo,
+}) async {
+  final bytes = await leerBytes(peticion, max: max, campo: campo);
+  try {
+    final valor = jsonDecode(utf8.decode(bytes));
+    if (valor is Map<String, Object?>) return valor;
+  } on FormatException {
+    // Se responde abajo con el mismo error.
+  }
+  throw ErrorApi.jsonInvalido();
+}
+
 /// Lee el cuerpo como bytes sin pasar de [max]: corta en cuanto lo rebasa,
 /// para que un archivo enorme no llene la memoria del iPad.
 Future<Uint8List> leerBytes(

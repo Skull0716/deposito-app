@@ -10,6 +10,7 @@ import '../db/almacen_fotos.dart';
 import '../db/base_datos.dart';
 import '../db/repositorio_productos.dart';
 import '../modelos/evento.dart';
+import '../modelos/importacion.dart';
 import '../modelos/movimiento.dart';
 import '../modelos/producto.dart';
 import '../ws/hub.dart';
@@ -250,6 +251,186 @@ class ServicioProductos {
     return producto;
   }
 
+  /// Crea o actualiza productos desde un CSV (docs/API.md, Importar desde
+  /// CSV). Todo o nada: con un renglón con error no se guarda ninguno.
+  ResultadoImportacion importar(
+    Map<String, Object?> datos, {
+    required String origen,
+  }) {
+    final v = Validador(datos);
+    final crudo = datos['csv'];
+    final String? csv;
+    if (crudo is String && crudo.length > maxCaracteresCsv) {
+      v.error('csv', 'El archivo pasa de 2 MB');
+      csv = null;
+    } else {
+      csv = v.texto('csv', max: maxCaracteresCsv);
+    }
+    final soloRevisar = datos['soloRevisar'];
+    if (soloRevisar is! bool) v.error('soloRevisar', 'Debe ser true o false');
+    v.comprobar();
+
+    final List<RenglonInventario> renglones;
+    try {
+      renglones = leerInventario(csv!);
+    } on FormatException catch (e) {
+      throw ErrorApi.datosInvalidos({'csv': e.message});
+    }
+
+    final ahora = instanteIso(_reloj());
+    final planes = <_PlanImportacion>[];
+    final errores = <ErrorRenglon>[];
+    final cambios = <CambioExistencia>[];
+    final vistos = <String, int>{};
+    var creados = 0, actualizados = 0, sinCambios = 0;
+
+    for (final r in renglones) {
+      final codigo = r.codigo;
+      final anterior = codigo == null ? null : vistos[codigo];
+      if (anterior != null) {
+        errores.add(
+          ErrorRenglon(
+            renglon: r.renglon,
+            codigo: codigo,
+            campos: {'codigo': 'Repetido: ya viene en el renglón $anterior'},
+          ),
+        );
+        continue;
+      }
+      if (codigo != null) vistos[codigo] = r.renglon;
+
+      final actual = codigo == null ? null : _repo.porCodigo(codigo);
+      final valores = Map.of(r.valores)..remove('existencia');
+      final rv = Validador({
+        if (actual != null) ..._camposEditables(actual),
+        ...valores,
+      });
+      final campos = _leerCampos(rv);
+      final fallas = {...r.errores, ...rv.errores};
+      if (fallas.isNotEmpty) {
+        errores.add(
+          ErrorRenglon(renglon: r.renglon, codigo: codigo, campos: fallas),
+        );
+        continue;
+      }
+
+      final existencia = r.valores['existencia'] as int?;
+      final producto = Producto(
+        id: actual?.id ?? generarId('p'),
+        codigo: campos.codigo!,
+        nombre: campos.nombre!,
+        categoria: campos.categoria!,
+        presentacion: campos.presentacion,
+        precio: campos.precio!,
+        precioCaja: campos.precioCaja,
+        piezasPorCaja: campos.piezasPorCaja,
+        existenciaPiezas: existencia ?? actual?.existenciaPiezas ?? 0,
+        minimo: campos.minimo,
+        envase: campos.envase,
+        caducidad: campos.caducidad,
+        foto: actual?.foto,
+        creado: actual?.creado ?? ahora,
+        actualizado: ahora,
+      );
+
+      if (actual == null) {
+        creados++;
+      } else {
+        final cambiaExistencia =
+            producto.existenciaPiezas != actual.existenciaPiezas;
+        final cambiaDatos = _camposEditables(producto).entries
+            .any((e) => _camposEditables(actual)[e.key] != e.value);
+        if (!cambiaExistencia && !cambiaDatos) {
+          sinCambios++;
+          continue;
+        }
+        actualizados++;
+        if (cambiaExistencia) {
+          cambios.add(
+            CambioExistencia(
+              renglon: r.renglon,
+              codigo: actual.codigo,
+              nombre: producto.nombre,
+              antes: actual.existenciaPiezas,
+              despues: producto.existenciaPiezas,
+            ),
+          );
+        }
+      }
+      planes.add(_PlanImportacion(producto, actual));
+    }
+
+    final guardar = errores.isEmpty && soloRevisar == false;
+    if (guardar) {
+      transaccion(_db, () {
+        for (final plan in planes) {
+          _guardarImportado(plan, origen: origen, fecha: ahora);
+        }
+      });
+      for (final plan in planes) {
+        _emitir(_repo.porId(plan.producto.id)!);
+      }
+    }
+
+    return ResultadoImportacion(
+      guardado: guardar,
+      creados: creados,
+      actualizados: actualizados,
+      sinCambios: sinCambios,
+      cambiosExistencia: cambios,
+      errores: errores,
+    );
+  }
+
+  void _guardarImportado(
+    _PlanImportacion plan, {
+    required String origen,
+    required String fecha,
+  }) {
+    final p = plan.producto;
+    final actual = plan.actual;
+    if (actual == null) {
+      _repo.insertar(p);
+    } else {
+      _repo.actualizar(p);
+    }
+    final antes = actual?.existenciaPiezas ?? 0;
+    final diferencia = p.existenciaPiezas - antes;
+    if (diferencia == 0) return;
+    if (actual != null) {
+      _repo.actualizarExistencia(p.id, p.existenciaPiezas, fecha);
+    }
+    _repo.registrarMovimiento(
+      productoId: p.id,
+      tipo: actual == null ? 'inicial' : 'ajuste',
+      piezas: diferencia,
+      existenciaResultante: p.existenciaPiezas,
+      origen: origen,
+      nota: 'Importación CSV',
+      fecha: fecha,
+    );
+  }
+
+  /// Los campos que se validan con [_leerCampos], como vienen en la API.
+  static Map<String, Object?> _camposEditables(Producto p) {
+    final json = p.toJson();
+    return {
+      for (final c in [
+        'codigo',
+        'nombre',
+        'categoria',
+        'presentacion',
+        'precio',
+        'precioCaja',
+        'piezasPorCaja',
+        'minimo',
+        'envase',
+        'caducidad',
+      ])
+        c: json[c],
+    };
+  }
+
   List<Movimiento> movimientos(String id) {
     obtener(id);
     return _repo.movimientos(id);
@@ -367,4 +548,13 @@ class _Campos {
   final int minimo;
   final String? envase;
   final String? caducidad;
+}
+
+/// Lo que hará la importación con un renglón válido: [actual] es `null` si
+/// el producto es nuevo.
+class _PlanImportacion {
+  const _PlanImportacion(this.producto, this.actual);
+
+  final Producto producto;
+  final Producto? actual;
 }

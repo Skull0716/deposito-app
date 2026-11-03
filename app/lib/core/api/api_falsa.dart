@@ -154,6 +154,89 @@ class ApiFalsa implements Api {
   Future<Producto> borrarFoto(String id) async =>
       _reemplazar({..._producto(id).toJson(), 'foto': null});
 
+  /// Versión simple del servidor: lee el archivo con las mismas reglas,
+  /// pero de la validación de cada producto solo revisa los obligatorios.
+  @override
+  Future<ResultadoImportacion> importarProductos(
+    String csv, {
+    required bool soloRevisar,
+  }) async {
+    final List<RenglonInventario> renglones;
+    try {
+      renglones = leerInventario(csv);
+    } on FormatException catch (e) {
+      throw FalloApi(
+        'datos_invalidos',
+        'Revisa los campos marcados',
+        campos: {'csv': e.message},
+      );
+    }
+    final errores = <ErrorRenglon>[];
+    final cambios = <CambioExistencia>[];
+    final nuevos = <Map<String, Object?>>[];
+    final editados = <Map<String, Object?>>[];
+    final vistos = <String>{};
+    var sinCambios = 0;
+    for (final r in renglones) {
+      final codigo = r.codigo;
+      final fallas = {
+        ...r.errores,
+        for (final c in columnasObligatoriasCsv)
+          if (r.valores[c] == null) c: 'Es obligatorio',
+        if (codigo != null && !vistos.add(codigo)) 'codigo': 'Repetido',
+      };
+      if (fallas.isNotEmpty) {
+        errores.add(
+          ErrorRenglon(renglon: r.renglon, codigo: codigo, campos: fallas),
+        );
+        continue;
+      }
+      final actual = productos.where((p) => p.codigo == codigo).firstOrNull;
+      final existencia = r.valores['existencia'] as int?;
+      final valores = {...r.valores}..remove('existencia');
+      if (actual == null) {
+        nuevos.add({...valores, 'existenciaPiezas': ?existencia});
+        continue;
+      }
+      final json = {
+        ...actual.toJson(),
+        ...valores,
+        'existenciaPiezas': existencia ?? actual.existenciaPiezas,
+      };
+      if (json.entries.every((e) => actual.toJson()[e.key] == e.value)) {
+        sinCambios++;
+        continue;
+      }
+      if (existencia != null && existencia != actual.existenciaPiezas) {
+        cambios.add(
+          CambioExistencia(
+            renglon: r.renglon,
+            codigo: actual.codigo,
+            nombre: json['nombre'] as String,
+            antes: actual.existenciaPiezas,
+            despues: existencia,
+          ),
+        );
+      }
+      editados.add(json);
+    }
+    final guardar = errores.isEmpty && !soloRevisar;
+    if (guardar) {
+      for (final datos in nuevos) {
+        await crearProducto(datos);
+      }
+      editados.forEach(_reemplazar);
+    }
+    return ResultadoImportacion(
+      guardado: guardar,
+      creados: nuevos.length,
+      actualizados: editados.length,
+      sinCambios: sinCambios,
+      cambiosExistencia: cambios,
+      errores: errores,
+    );
+  }
+
   Producto _producto(String id) =>
       productos.where((p) => p.id == id).firstOrNull ??
       (throw const FalloApi(
