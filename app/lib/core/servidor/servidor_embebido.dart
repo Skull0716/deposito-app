@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 /// Carga los productos del prototipo la primera vez. Se apaga antes de la
 /// entrega al cliente (Sprint 5), cuando se cargue su inventario real.
-const cargarDatosEjemplo = true;
+const cargarDatosEjemplo = false;
 
 const puertoServidor = 8080;
 
