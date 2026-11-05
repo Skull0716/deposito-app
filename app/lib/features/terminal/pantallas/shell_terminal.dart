@@ -7,6 +7,7 @@ import '../../../core/api/fallo_api.dart';
 import '../../../core/config/configuracion.dart';
 import '../../../core/widgets/indicador_conexion.dart';
 import '../../catalogo/estado/productos.dart';
+import '../estado/pedido_borrador.dart';
 
 class _Pestana {
   const _Pestana(this.ruta, this.titulo, this.icono, this.iconoActivo);
@@ -57,6 +58,7 @@ class ShellTerminal extends ConsumerWidget {
         .clamp(0, _pestanas.length - 1);
     final error = ref.watch(productosProvider).error;
     final revocada = error is FalloApi && error.noAutorizado;
+    final enPedido = ref.watch(pedidoBorradorProvider).articulos;
 
     return Scaffold(
       body: Column(
@@ -117,8 +119,12 @@ class ShellTerminal extends ConsumerWidget {
         destinations: [
           for (final p in _pestanas)
             NavigationDestination(
-              icon: Icon(p.icono),
-              selectedIcon: Icon(p.iconoActivo),
+              icon: p.ruta == 'pedido' && enPedido > 0
+                  ? Badge(label: Text('$enPedido'), child: Icon(p.icono))
+                  : Icon(p.icono),
+              selectedIcon: p.ruta == 'pedido' && enPedido > 0
+                  ? Badge(label: Text('$enPedido'), child: Icon(p.iconoActivo))
+                  : Icon(p.iconoActivo),
               label: p.titulo,
             ),
         ],

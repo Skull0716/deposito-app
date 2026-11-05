@@ -154,6 +154,44 @@ class CarritoNotifier extends Notifier<Carrito> {
     );
   }
 
+  /// Carga un pedido de terminal al ticket. No frena por existencias: el
+  /// servidor las revisa al cobrar (docs/API.md). Regresa los nombres de los
+  /// productos que quedaron por encima de la existencia, para avisar.
+  List<String> cargarPedido(
+    List<({Producto producto, bool porCaja, int cantidad})> lineas,
+  ) {
+    final items = [...state.items];
+    for (final l in lineas) {
+      final porCaja =
+          l.porCaja &&
+          l.producto.piezasPorCaja != null &&
+          l.producto.precioCaja != null;
+      final clave = '${l.producto.id}_${porCaja ? 'caja' : 'pieza'}';
+      final i = items.indexWhere((x) => x.clave == clave);
+      final base = i < 0
+          ? ItemCarrito(producto: l.producto, porCaja: porCaja, cantidad: 0)
+          : items[i];
+      final nuevo = base.con(cantidad: base.cantidad + l.cantidad);
+      if (i < 0) {
+        items.add(nuevo);
+      } else {
+        items[i] = nuevo;
+      }
+    }
+    _cambiar(items: items);
+
+    final conflictos = <String>{};
+    for (final l in lineas) {
+      final piezas = state.items
+          .where((i) => i.producto.id == l.producto.id)
+          .fold(0, (t, i) => t + i.piezas);
+      if (piezas > l.producto.existenciaPiezas) {
+        conflictos.add(l.producto.nombre);
+      }
+    }
+    return conflictos.toList();
+  }
+
   /// Pone [cantidad] en el renglón de [item]; `0` lo quita. Regresa el
   /// motivo si no alcanza la existencia.
   String? cambiarCantidad(ItemCarrito item, int cantidad) {

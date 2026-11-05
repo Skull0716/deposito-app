@@ -4,6 +4,7 @@ import 'package:deposito_backend/deposito_backend.dart';
 import 'package:dio/dio.dart';
 
 import 'fallo_api.dart';
+import 'pedido.dart';
 
 /// Lo que la app le puede pedir al servidor (docs/API.md).
 ///
@@ -207,6 +208,16 @@ abstract interface class Api {
   Future<({String dia, int dias, List<Alerta> alertas})> listarAlertas({
     int? dias,
   });
+
+  /// Arma el pedido del cliente desde una terminal y lo manda a la caja.
+  /// No revisa existencias: se revisan al cobrar.
+  Future<Pedido> crearPedido({required List<LineaPedido> lineas, String? nota});
+
+  /// Pedidos pendientes, del más viejo al más nuevo.
+  Future<List<Pedido>> listarPedidos();
+
+  /// Marca el pedido como atendido (cobrado o descartado).
+  Future<void> descartarPedido(String id);
 
   Future<AjustesNegocio> obtenerAjustes();
 
@@ -737,6 +748,34 @@ class ApiHttp implements Api {
       ],
     );
   });
+
+  @override
+  Future<Pedido> crearPedido({
+    required List<LineaPedido> lineas,
+    String? nota,
+  }) => _pedir(() async {
+    final r = await _dio.post<Map<String, Object?>>(
+      '/api/v1/pedidos',
+      data: {
+        'nota': ?nota,
+        'lineas': [for (final l in lineas) l.toJson()],
+      },
+    );
+    return Pedido.fromJson(r.data!);
+  });
+
+  @override
+  Future<List<Pedido>> listarPedidos() => _pedir(() async {
+    final r = await _dio.get<Map<String, Object?>>('/api/v1/pedidos');
+    return [
+      for (final p in r.data!['pedidos'] as List)
+        Pedido.fromJson((p as Map).cast()),
+    ];
+  });
+
+  @override
+  Future<void> descartarPedido(String id) =>
+      _pedir(() => _dio.delete<void>('/api/v1/pedidos/$id'));
 
   @override
   Future<AjustesNegocio> obtenerAjustes() => _pedir(() async {

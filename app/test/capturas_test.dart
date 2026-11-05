@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:deposito_app/core/api/api_falsa.dart';
+import 'package:deposito_app/core/api/pedido.dart';
+
 import 'ayudantes.dart';
 
 final _salida = Platform.environment['CAPTURAS'];
@@ -160,5 +163,55 @@ void main() {
     );
     await tester.tap(find.text('Alertas').first);
     await capturar(tester, '11_caja_alertas');
+  });
+
+  testWidgets('terminal pedido', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsTerminal,
+      tamano: telefono,
+      tema: ThemeMode.light,
+    );
+    await tester.enterText(find.byType(TextField), '7501064191015');
+    await tester.tap(find.text('Buscar'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Agregar 1 pieza'));
+    await tester.tap(find.text('Agregar 1 pieza'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pedido').last);
+    await capturar(tester, '12_terminal_pedido');
+  });
+
+  testWidgets('caja pedido pendiente', skip: omitir != null, (tester) async {
+    final api = ApiFalsa(
+      pedidos: [
+        const Pedido(
+          id: 'ped_1',
+          origen: 'Terminal S24',
+          fecha: '2026-10-02T18:30:00Z',
+          nota: 'Mesa 3',
+          lineas: [
+            LineaPedido(
+              productoId: 'p_1',
+              unidad: UnidadPedido.pieza,
+              cantidad: 2,
+            ),
+            LineaPedido(
+              productoId: 'p_2',
+              unidad: UnidadPedido.caja,
+              cantidad: 1,
+            ),
+          ],
+        ),
+      ],
+    );
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      api: api,
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    await capturar(tester, '13_caja_pedido_pendiente');
   });
 }

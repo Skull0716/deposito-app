@@ -4,12 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/tema/colores.dart';
+import '../../../core/api/fallo_api.dart';
+import '../../../core/api/pedido.dart';
 import '../../../core/formato/formato.dart';
 import '../../../core/servidor/servidor_embebido.dart';
 import '../../../core/widgets/estados.dart';
 import '../../../core/widgets/ilustracion_producto.dart';
 import '../../catalogo/estado/productos.dart';
 import '../../catalogo/pantallas/detalle_producto.dart';
+import '../../pdv/estado/carrito.dart';
+import '../../pedidos/estado/pedidos_provider.dart';
 import '../estado/terminales.dart';
 import 'conectar_terminal.dart';
 
@@ -118,6 +122,7 @@ class _Tablero extends ConsumerWidget {
               columnas: columnasKpi,
             ),
             const SizedBox(height: 20),
+            _PedidosPendientes(productos: productos),
             Flex(
               direction: dosColumnas ? Axis.horizontal : Axis.vertical,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -509,11 +514,12 @@ class _FilaAtencion extends StatelessWidget {
     final dias = p.caducidad == null ? null : diasHasta(p.caducidad!, hoy);
     final (motivo, color, fondo) = p.bajoMinimo
         ? ('Bajo el mínimo', c.alerta, c.alertaSuave)
-        : (
-            'Caduca ${dias! <= 0 ? 'hoy' : 'en $dias días'}',
-            c.azul,
-            c.superficie3,
-          );
+        : switch (dias!) {
+            < 0 => ('Vencido', c.alerta, c.alertaSuave),
+            0 => ('Caduca hoy', c.alerta, c.alertaSuave),
+            1 => ('Caduca mañana', c.azul, c.superficie3),
+            _ => ('Caduca en $dias días', c.azul, c.superficie3),
+          };
     return InkWell(
       onTap: () => mostrarDetalleProducto(context, p),
       borderRadius: BorderRadius.circular(10),
@@ -562,6 +568,170 @@ class _FilaAtencion extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Pedidos que mandaron las terminales y todavía no se cobran.
+class _PedidosPendientes extends ConsumerWidget {
+  const _PedidosPendientes({required this.productos});
+
+  final List<Producto> productos;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lista =
+        ref.watch(pedidosPendientesProvider).value ?? const <Pedido>[];
+    if (lista.isEmpty) return const SizedBox.shrink();
+    final porId = {for (final p in productos) p.id: p};
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: _Tarjeta(
+        titulo: lista.length == 1
+            ? 'Pedido de terminal'
+            : 'Pedidos de terminal',
+        accion: IconButton(
+          tooltip: 'Actualizar pedidos',
+          onPressed: () =>
+              ref.read(pedidosPendientesProvider.notifier).refrescar(),
+          icon: const Icon(Icons.refresh_rounded),
+        ),
+        child: Column(
+          children: [
+            for (var i = 0; i < lista.length; i++) ...[
+              if (i > 0) Divider(height: 1, color: context.colores.linea),
+              _FilaPedidoCaja(pedido: lista[i], productos: porId),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FilaPedidoCaja extends ConsumerWidget {
+  const _FilaPedidoCaja({required this.pedido, required this.productos});
+
+  final Pedido pedido;
+  final Map<String, Producto> productos;
+
+  int get _total {
+    var total = 0;
+    for (final l in pedido.lineas) {
+      final p = productos[l.productoId];
+      if (p == null) continue;
+      final porCaja =
+          l.unidad.porCaja && p.precioCaja != null && p.piezasPorCaja != null;
+      total += l.cantidad * (porCaja ? p.precioCaja! : p.precio);
+    }
+    return total;
+  }
+
+  Future<void> _descartar(BuildContext context, WidgetRef ref) async {
+    final ok = await confirmar(
+      context,
+      titulo: 'Descartar pedido',
+      mensaje:
+          'El pedido de ${pedido.origen} se borrará. Esta acción no se puede deshacer.',
+      accion: 'Descartar',
+      peligrosa: true,
+    );
+    if (!ok || !context.mounted) return;
+    try {
+      await ref.read(pedidosPendientesProvider.notifier).descartar(pedido);
+    } on Object catch (e) {
+      if (context.mounted) avisar(context, mensajeDeError(e));
+    }
+  }
+
+  Future<void> _pasarAlTicket(BuildContext context, WidgetRef ref) async {
+    final lineas = <({Producto producto, bool porCaja, int cantidad})>[
+      for (final l in pedido.lineas)
+        if (productos[l.productoId] case final p?)
+          (producto: p, porCaja: l.unidad.porCaja, cantidad: l.cantidad),
+    ];
+    if (lineas.isEmpty) {
+      avisar(
+        context,
+        'Los productos de este pedido ya no están en el catálogo',
+      );
+      return;
+    }
+
+    final conflictos = ref.read(carritoProvider.notifier).cargarPedido(lineas);
+    try {
+      await ref.read(pedidosPendientesProvider.notifier).descartar(pedido);
+    } on Object catch (e) {
+      if (context.mounted) avisar(context, mensajeDeError(e));
+    }
+    if (!context.mounted) return;
+    context.go('/caja/vender');
+    avisar(
+      context,
+      conflictos.isEmpty
+          ? 'Pedido cargado al ticket'
+          : 'Pedido cargado. Revisa existencias: ${conflictos.join(', ')}',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colores;
+    final articulos = pedido.articulos;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: c.lagerSuave,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.receipt_long_rounded, color: c.azul),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pedido de ${pedido.origen}',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  '$articulos ${articulos == 1 ? 'artículo' : 'artículos'} · '
+                  '${dinero(_total)} · ${hora(pedido.fecha)}',
+                  style: TextStyle(color: c.tinta2, fontSize: 14),
+                ),
+                if (pedido.nota case final nota?)
+                  Text(
+                    'Nota: $nota',
+                    style: TextStyle(color: c.tinta2, fontSize: 14),
+                  ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    OutlinedButton(
+                      onPressed: () => _descartar(context, ref),
+                      child: const Text('Descartar'),
+                    ),
+                    FilledButton(
+                      onPressed: () => _pasarAlTicket(context, ref),
+                      child: const Text('Pasar al ticket'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
