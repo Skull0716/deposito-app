@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../estado/productos.dart';
+import 'acciones_producto.dart';
 import 'detalle_producto.dart';
 import 'formulario_producto.dart';
 import 'vista_catalogo.dart';
 
-/// Catálogo de la caja: el mismo de la terminal, más el alta y la edición
-/// de productos.
-class PantallaCatalogo extends ConsumerWidget {
+/// Catálogo de la caja: el mismo de la terminal, más el alta, la edición y
+/// los ajustes de inventario.
+class PantallaCatalogo extends StatelessWidget {
   const PantallaCatalogo({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => VistaCatalogo(
+  Widget build(BuildContext context) => VistaCatalogo(
     acciones: [
       FilledButton.icon(
         onPressed: () => abrirFormularioProducto(context),
@@ -24,18 +23,7 @@ class PantallaCatalogo extends ConsumerWidget {
     alTocarProducto: (context, producto) => mostrarDetalleProducto(
       context,
       producto,
-      alEditar: () async {
-        // Cierra la ficha y abre el formulario sobre el catálogo, para que la
-        // cuadrícula se actualice al guardar.
-        Navigator.pop(context);
-        final actualizado = await abrirFormularioProducto(
-          context,
-          producto: producto,
-        );
-        if (actualizado != null) {
-          await ref.read(productosProvider.notifier).refrescar();
-        }
-      },
+      accionesCaja: AccionesProductoCaja(producto: producto),
     ),
   );
 }

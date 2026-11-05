@@ -115,6 +115,34 @@ void main() {
     await capturar(tester, '05_caja_nuevo_producto');
   });
 
+  testWidgets('caja ficha de producto', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    await tester.tap(find.text('Catálogo').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Victoria Mega').first);
+    await capturar(tester, '16_caja_producto_ficha');
+  });
+
+  testWidgets('caja editar producto', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    await tester.tap(find.text('Catálogo').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Victoria Mega').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Editar producto'));
+    await capturar(tester, '17_caja_producto_editar');
+  });
+
   testWidgets('caja vincular terminal', skip: omitir != null, (tester) async {
     await montarApp(
       tester,

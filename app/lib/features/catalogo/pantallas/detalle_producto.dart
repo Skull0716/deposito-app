@@ -1,30 +1,35 @@
 import 'package:deposito_backend/deposito_backend.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/tema/colores.dart';
 import '../../../core/formato/formato.dart';
 import '../../../core/widgets/ilustracion_producto.dart';
+import '../estado/productos.dart';
 
 Future<void> mostrarDetalleProducto(
   BuildContext context,
   Producto p, {
   List<Widget> acciones = const [],
-  VoidCallback? alEditar,
+  Widget? accionesCaja,
 }) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
   constraints: const BoxConstraints(maxWidth: 560),
-  builder: (_) =>
-      DetalleProducto(producto: p, acciones: acciones, alEditar: alEditar),
+  builder: (_) => DetalleProducto(
+    producto: p,
+    acciones: acciones,
+    accionesCaja: accionesCaja,
+  ),
 );
 
 /// Ficha del producto: precio, existencia y datos del catálogo.
-class DetalleProducto extends StatelessWidget {
+class DetalleProducto extends ConsumerWidget {
   const DetalleProducto({
     super.key,
     required this.producto,
     this.acciones = const [],
-    this.alEditar,
+    this.accionesCaja,
   });
 
   final Producto producto;
@@ -32,14 +37,21 @@ class DetalleProducto extends StatelessWidget {
   /// Botones al final de la ficha (por ejemplo, agregar al pedido).
   final List<Widget> acciones;
 
-  /// En la caja, abre el formulario para editar el producto.
-  final VoidCallback? alEditar;
+  /// Botones de la caja (recibir, editar, ajustar, movimientos, eliminar).
+  final Widget? accionesCaja;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.colores;
     final textos = Theme.of(context).textTheme;
-    final p = producto;
+    // Si el catálogo se refrescó (por una entrada o un ajuste), la ficha
+    // muestra la existencia nueva sin cerrarse.
+    final p =
+        ref
+            .watch(productosProvider)
+            .value
+            ?.firstWhere((x) => x.id == producto.id, orElse: () => producto) ??
+        producto;
     final hoy = DateTime.now();
     final diasCaducidad = p.caducidad == null
         ? null
@@ -137,13 +149,9 @@ class DetalleProducto extends StatelessWidget {
                 const SizedBox(height: 18),
                 ...acciones,
               ],
-              if (alEditar != null) ...[
+              if (accionesCaja case final acciones?) ...[
                 const SizedBox(height: 18),
-                OutlinedButton.icon(
-                  onPressed: alEditar,
-                  icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Editar producto'),
-                ),
+                acciones,
               ],
             ],
           ),
