@@ -14,6 +14,7 @@ import '../../../core/widgets/indicador_conexion.dart';
 import '../../../core/widgets/marca.dart';
 import '../../alertas/estado/alertas_provider.dart';
 import '../../auth/pantallas/login_diario.dart';
+import '../../pedidos/estado/pedidos_provider.dart';
 import '../../personal/estado/personal_provider.dart';
 import 'conectar_terminal.dart';
 import 'secciones_caja.dart';
@@ -233,6 +234,7 @@ class _MenuLateral extends ConsumerWidget {
     final textos = Theme.of(context).textTheme;
     final ip = ref.watch(direccionLocalProvider).value;
     final alertas = ref.watch(alertasProvider).value?.alertas.length ?? 0;
+    final pedidos = ref.watch(pedidosPendientesProvider).value?.length ?? 0;
 
     return Container(
       width: compacto ? 92 : 240,
@@ -303,6 +305,8 @@ class _MenuLateral extends ConsumerWidget {
                         compacto: compacto,
                         insignia: s.ruta == 'alertas' && alertas > 0
                             ? alertas
+                            : s.ruta == 'vender' && pedidos > 0
+                            ? pedidos
                             : null,
                         alTocar: () {
                           alNavegar?.call();

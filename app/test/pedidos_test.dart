@@ -7,13 +7,17 @@ import 'ayudantes.dart';
 
 /// Pedidos que arma la terminal y cobra la caja (docs/API.md).
 void main() {
-  Future<ApiFalsa> abrirTerminal(WidgetTester tester) async {
+  Future<ApiFalsa> abrirTerminal(
+    WidgetTester tester, {
+    double? escalaTexto,
+  }) async {
     final api = ApiFalsa();
     await montarApp(
       tester,
       preferencias: prefsTerminal,
       api: api,
       tamano: const Size(412, 915),
+      escalaTexto: escalaTexto,
     );
     return api;
   }
@@ -67,6 +71,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('Caja de 12'), findsOneWidget);
     expect(find.text(r'$480'), findsOneWidget);
+  });
+
+  testWidgets('el pedido soporta texto grande', (tester) async {
+    await abrirTerminal(tester, escalaTexto: 1.3);
+
+    await tester.enterText(find.byType(TextField), '7501064191015');
+    await tester.tap(find.text('Buscar'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Agregar 1 pieza'));
+    await tester.tap(find.text('Agregar 1 pieza'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pedido').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enviar pedido a la caja'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('la caja descarta un pedido pendiente', (tester) async {
