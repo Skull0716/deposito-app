@@ -18,7 +18,7 @@ import '../estado/terminales.dart';
 import 'conectar_terminal.dart';
 
 /// Tablero de la caja. Las cifras de ventas llegan en el Sprint 4; por ahora
-/// muestra lo que ya existe: catálogo, alertas calculadas y terminales.
+/// muestra catálogo, alertas, pedidos de terminal y terminales conectadas.
 class InicioCaja extends ConsumerWidget {
   const InicioCaja({super.key});
 

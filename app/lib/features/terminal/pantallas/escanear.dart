@@ -13,8 +13,8 @@ import 'escaner.dart';
 
 /// Escanear un producto para ver precio y existencia al momento.
 ///
-/// Busca en el catálogo que ya está en memoria (se mantiene al día por
-/// WebSocket). `GET /productos/codigo/{codigo}` llega en el Sprint 2.
+/// Busca en el catálogo que ya está en memoria y se mantiene al día por
+/// WebSocket; así responde aunque la red parpadee.
 class PantallaEscanear extends ConsumerStatefulWidget {
   const PantallaEscanear({super.key});
 

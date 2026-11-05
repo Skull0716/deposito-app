@@ -87,4 +87,38 @@ void main() {
 
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('las secciones de la caja soportan texto grande', (tester) async {
+    await montarApp(tester, preferencias: prefsCaja, escalaTexto: 1.3);
+
+    for (final seccion in [
+      'Ventas',
+      'Catálogo',
+      'Envases',
+      'Corte de caja',
+      'Alertas',
+      'Ajustes',
+    ]) {
+      await tester.tap(find.text(seccion).first);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: seccion);
+    }
+  });
+
+  testWidgets('las pestañas de la terminal soportan texto grande', (
+    tester,
+  ) async {
+    await montarApp(
+      tester,
+      preferencias: prefsTerminal,
+      tamano: const Size(412, 915),
+      escalaTexto: 1.3,
+    );
+
+    for (final pestana in ['Productos', 'Pedido', 'Ajustes']) {
+      await tester.tap(find.text(pestana).last);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: pestana);
+    }
+  });
 }
