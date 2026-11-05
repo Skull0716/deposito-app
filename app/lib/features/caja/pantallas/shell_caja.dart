@@ -109,14 +109,15 @@ class _Arrancando extends StatelessWidget {
   }
 }
 
-class _Marco extends StatelessWidget {
+class _Marco extends ConsumerWidget {
   const _Marco({required this.seccion, required this.child});
 
   final String seccion;
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pedidos = ref.watch(pedidosPendientesProvider).value?.length ?? 0;
     return LayoutBuilder(
       builder: (context, medidas) {
         final ancho = medidas.maxWidth;
@@ -185,8 +186,14 @@ class _Marco extends StatelessWidget {
               destinations: [
                 for (final item in itemsNav)
                   NavigationDestination(
-                    icon: Icon(item.icono),
-                    selectedIcon: Icon(item.activo),
+                    icon: _IconoNav(
+                      icono: item.icono,
+                      insignia: item.ruta == 'vender' ? pedidos : 0,
+                    ),
+                    selectedIcon: _IconoNav(
+                      icono: item.activo,
+                      insignia: item.ruta == 'vender' ? pedidos : 0,
+                    ),
                     label: item.label,
                   ),
               ],
@@ -471,6 +478,23 @@ class _ElementoMenu extends StatelessWidget {
       ),
     );
   }
+}
+
+class _IconoNav extends StatelessWidget {
+  const _IconoNav({required this.icono, required this.insignia});
+
+  final IconData icono;
+
+  /// Pedidos pendientes que se muestran sobre el ícono. 0 lo oculta.
+  final int insignia;
+
+  @override
+  Widget build(BuildContext context) => Badge(
+    isLabelVisible: insignia > 0,
+    backgroundColor: context.colores.alerta,
+    label: Text('$insignia'),
+    child: Icon(icono),
+  );
 }
 
 class _BarraSuperior extends ConsumerWidget {

@@ -135,6 +135,27 @@ void main() {
     expect(find.text('Victoria Mega'), findsWidgets);
   });
 
+  testWidgets('el menú móvil avisa pedidos pendientes', (tester) async {
+    final api = await montarConPedido(tester, tamano: const Size(412, 915));
+
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(Badge), matching: find.text('1')),
+      findsOneWidget,
+    );
+
+    await tester.ensureVisible(find.text('Pasar al ticket'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pasar al ticket'));
+    await tester.pumpAndSettle();
+
+    expect(api.pedidos, isEmpty);
+    expect(
+      find.descendant(of: find.byType(Badge), matching: find.text('1')),
+      findsNothing,
+    );
+  });
+
   testWidgets('el pedido pendiente se lee con texto grande en Vender', (
     tester,
   ) async {
@@ -153,6 +174,7 @@ void main() {
 Future<ApiFalsa> montarConPedido(
   WidgetTester tester, {
   double? escalaTexto,
+  Size tamano = const Size(1366, 1024),
 }) async {
   final api = ApiFalsa(
     pedidos: [
@@ -176,6 +198,7 @@ Future<ApiFalsa> montarConPedido(
     preferencias: prefsCaja,
     api: api,
     escalaTexto: escalaTexto,
+    tamano: tamano,
   );
   return api;
 }
