@@ -43,6 +43,29 @@ void main() {
       ? 'Define CAPTURAS para generar capturas'
       : null;
 
+  ApiFalsa cajaConPedido() => ApiFalsa(
+    pedidos: [
+      const Pedido(
+        id: 'ped_1',
+        origen: 'Terminal S24',
+        fecha: '2026-10-02T18:30:00Z',
+        nota: 'Mesa 3',
+        lineas: [
+          LineaPedido(
+            productoId: 'p_1',
+            unidad: UnidadPedido.pieza,
+            cantidad: 2,
+          ),
+          LineaPedido(
+            productoId: 'p_2',
+            unidad: UnidadPedido.caja,
+            cantidad: 1,
+          ),
+        ],
+      ),
+    ],
+  );
+
   testWidgets('bienvenida', skip: omitir != null, (tester) async {
     await montarApp(tester, tamano: ipad, tema: ThemeMode.dark);
     await capturar(tester, '01_bienvenida_oscuro');
@@ -183,35 +206,27 @@ void main() {
   });
 
   testWidgets('caja pedido pendiente', skip: omitir != null, (tester) async {
-    final api = ApiFalsa(
-      pedidos: [
-        const Pedido(
-          id: 'ped_1',
-          origen: 'Terminal S24',
-          fecha: '2026-10-02T18:30:00Z',
-          nota: 'Mesa 3',
-          lineas: [
-            LineaPedido(
-              productoId: 'p_1',
-              unidad: UnidadPedido.pieza,
-              cantidad: 2,
-            ),
-            LineaPedido(
-              productoId: 'p_2',
-              unidad: UnidadPedido.caja,
-              cantidad: 1,
-            ),
-          ],
-        ),
-      ],
-    );
     await montarApp(
       tester,
       preferencias: prefsCaja,
-      api: api,
+      api: cajaConPedido(),
       tamano: ipad,
       tema: ThemeMode.light,
     );
     await capturar(tester, '13_caja_pedido_pendiente');
+  });
+
+  testWidgets('caja vender con pedido pendiente', skip: omitir != null, (
+    tester,
+  ) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      api: cajaConPedido(),
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    await tester.tap(find.text('Vender').first);
+    await capturar(tester, '14_caja_vender_pedido');
   });
 }

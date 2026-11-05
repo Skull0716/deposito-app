@@ -10,6 +10,7 @@ import '../../envases/datos/modelos_envases.dart';
 import '../../envases/pantallas/modal_recepcion_envases.dart';
 import '../../envases/pantallas/modal_registro_prestamo.dart';
 import '../../envases/pantallas/modal_salida_envases.dart';
+import '../../pedidos/pantallas/pedidos_pendientes.dart';
 import '../estado/carrito.dart';
 import 'escaner_continuo.dart';
 import 'flujo_cobro.dart';
@@ -351,121 +352,146 @@ class _PuntoVentaState extends ConsumerState<PuntoVenta>
     return Scaffold(
       backgroundColor: c.fondo,
       body: SafeArea(
-        child: Row(
+        child: Column(
           children: [
-            // Catálogo
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: PedidosPendientes(productos: todos),
+            ),
             Expanded(
-              flex: 6,
-              child: Column(
+              child: Row(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
+                  // Catálogo
+                  Expanded(
+                    flex: 6,
                     child: Column(
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _busqueda,
-                                onChanged: (_) => setState(() {}),
-                                onSubmitted: (t) => _alEnviarBusqueda(todos, t),
-                                decoration: InputDecoration(
-                                  hintText: 'Buscar o escanear código...',
-                                  prefixIcon: const Icon(Icons.search),
-                                  filled: true,
-                                  fillColor: c.superficie,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            IconButton(
-                              tooltip: 'Escanear con la cámara',
-                              onPressed: () => _abrirEscaner(todos),
-                              icon: const Icon(Icons.qr_code_scanner_rounded),
-                              style: IconButton.styleFrom(
-                                backgroundColor: c.azul.withValues(alpha: 0.1),
-                                foregroundColor: c.azul,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.all(12),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
                             children: [
-                              for (final cat in [null, ...categorias])
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: FiltroCategorias(
-                                    texto: cat == null
-                                        ? 'Todas'
-                                        : capitalizar(cat),
-                                    activo: _categoria == cat,
-                                    alElegir: () =>
-                                        setState(() => _categoria = cat),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _busqueda,
+                                      onChanged: (_) => setState(() {}),
+                                      onSubmitted: (t) =>
+                                          _alEnviarBusqueda(todos, t),
+                                      decoration: InputDecoration(
+                                        hintText: 'Buscar o escanear código...',
+                                        prefixIcon: const Icon(Icons.search),
+                                        filled: true,
+                                        fillColor: c.superficie,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: BorderSide.none,
+                                        ),
+                                      ),
+                                    ),
                                   ),
+                                  const SizedBox(width: 12),
+                                  IconButton(
+                                    tooltip: 'Escanear con la cámara',
+                                    onPressed: () => _abrirEscaner(todos),
+                                    icon: const Icon(
+                                      Icons.qr_code_scanner_rounded,
+                                    ),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: c.azul.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      foregroundColor: c.azul,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      padding: const EdgeInsets.all(12),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    for (final cat in [null, ...categorias])
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 8,
+                                        ),
+                                        child: FiltroCategorias(
+                                          texto: cat == null
+                                              ? 'Todas'
+                                              : capitalizar(cat),
+                                          activo: _categoria == cat,
+                                          alElegir: () =>
+                                              setState(() => _categoria = cat),
+                                        ),
+                                      ),
+                                  ],
                                 ),
+                              ),
                             ],
                           ),
+                        ),
+                        Expanded(
+                          child: visibles.isEmpty
+                              ? const EstadoVacio(
+                                  icono: Icons.search_off_rounded,
+                                  titulo: 'Sin productos',
+                                  mensaje:
+                                      'Prueba con otra búsqueda o categoría.',
+                                )
+                              : GridView.builder(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    0,
+                                    16,
+                                    96,
+                                  ),
+                                  gridDelegate:
+                                      const SliverGridDelegateWithMaxCrossAxisExtent(
+                                        maxCrossAxisExtent: 220,
+                                        childAspectRatio: 0.85,
+                                        crossAxisSpacing: 16,
+                                        mainAxisSpacing: 16,
+                                      ),
+                                  itemCount: visibles.length,
+                                  itemBuilder: (context, i) {
+                                    final prod = visibles[i];
+                                    return TarjetaProductoVenta(
+                                      producto: prod,
+                                      enCarrito: carrito.piezasDe(prod.id),
+                                      alTocar: () => _alTocarProducto(prod),
+                                    );
+                                  },
+                                ),
                         ),
                       ],
                     ),
                   ),
-                  Expanded(
-                    child: visibles.isEmpty
-                        ? const EstadoVacio(
-                            icono: Icons.search_off_rounded,
-                            titulo: 'Sin productos',
-                            mensaje: 'Prueba con otra búsqueda o categoría.',
-                          )
-                        : GridView.builder(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-                            gridDelegate:
-                                const SliverGridDelegateWithMaxCrossAxisExtent(
-                                  maxCrossAxisExtent: 220,
-                                  childAspectRatio: 0.85,
-                                  crossAxisSpacing: 16,
-                                  mainAxisSpacing: 16,
-                                ),
-                            itemCount: visibles.length,
-                            itemBuilder: (context, i) {
-                              final prod = visibles[i];
-                              return TarjetaProductoVenta(
-                                producto: prod,
-                                enCarrito: carrito.piezasDe(prod.id),
-                                alTocar: () => _alTocarProducto(prod),
-                              );
-                            },
-                          ),
-                  ),
+
+                  // Venta actual (en pantallas anchas)
+                  if (esAncho)
+                    Container(
+                      width: 380,
+                      decoration: BoxDecoration(
+                        color: c.superficie2,
+                        border: Border(left: BorderSide(color: c.linea)),
+                      ),
+                      child: PanelVenta(
+                        itemReciente: _itemRecienteClave,
+                        alEditar: _mostrarEdicionCarrito,
+                        alRecibirVacios: _abrirRecepcionEnvases,
+                        alCobrar: _iniciarCobro,
+                      ),
+                    ),
                 ],
               ),
             ),
-
-            // Venta actual (en pantallas anchas)
-            if (esAncho)
-              Container(
-                width: 380,
-                decoration: BoxDecoration(
-                  color: c.superficie2,
-                  border: Border(left: BorderSide(color: c.linea)),
-                ),
-                child: PanelVenta(
-                  itemReciente: _itemRecienteClave,
-                  alEditar: _mostrarEdicionCarrito,
-                  alRecibirVacios: _abrirRecepcionEnvases,
-                  alCobrar: _iniciarCobro,
-                ),
-              ),
           ],
         ),
       ),

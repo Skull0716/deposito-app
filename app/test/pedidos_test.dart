@@ -116,10 +116,44 @@ void main() {
     expect(find.text('Victoria Mega'), findsWidgets);
     expect(find.text('Pedido cargado al ticket'), findsOneWidget);
   });
+
+  testWidgets('Vender muestra los pedidos pendientes y los carga al ticket', (
+    tester,
+  ) async {
+    final api = await montarConPedido(tester);
+
+    await tester.tap(find.text('Vender').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pedido de Terminal S24'), findsOneWidget);
+    await tester.tap(find.text('Pasar al ticket'));
+    await tester.pumpAndSettle();
+
+    expect(api.pedidos, isEmpty);
+    expect(find.text('Pedido de Terminal S24'), findsNothing);
+    expect(find.text('Pedido cargado al ticket'), findsOneWidget);
+    expect(find.text('Victoria Mega'), findsWidgets);
+  });
+
+  testWidgets('el pedido pendiente se lee con texto grande en Vender', (
+    tester,
+  ) async {
+    await montarConPedido(tester, escalaTexto: 1.3);
+
+    await tester.tap(find.text('Vender').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pedido de Terminal S24'), findsOneWidget);
+    expect(find.text('Pasar al ticket'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 /// Caja con un pedido pendiente de 2 piezas de Victoria Mega.
-Future<ApiFalsa> montarConPedido(WidgetTester tester) async {
+Future<ApiFalsa> montarConPedido(
+  WidgetTester tester, {
+  double? escalaTexto,
+}) async {
   final api = ApiFalsa(
     pedidos: [
       const Pedido(
@@ -137,6 +171,11 @@ Future<ApiFalsa> montarConPedido(WidgetTester tester) async {
       ),
     ],
   );
-  await montarApp(tester, preferencias: prefsCaja, api: api);
+  await montarApp(
+    tester,
+    preferencias: prefsCaja,
+    api: api,
+    escalaTexto: escalaTexto,
+  );
   return api;
 }
