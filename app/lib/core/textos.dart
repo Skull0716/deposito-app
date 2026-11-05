@@ -24,6 +24,8 @@ abstract final class Textos {
   static const confirmar = 'Confirmar';
   static const eliminar = 'Eliminar';
   static const aceptar = 'Aceptar';
+  static const recibir = 'Recibir';
+  static const ver = 'Ver';
 
   // ---------------------------------------------------------------------------
   // Estados y errores

@@ -150,4 +150,15 @@ void main() {
     await tester.tap(find.text('Escribir los datos a mano'));
     await capturar(tester, '10_terminal_vincular');
   });
+
+  testWidgets('caja alertas', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    await tester.tap(find.text('Alertas').first);
+    await capturar(tester, '11_caja_alertas');
+  });
 }

@@ -378,7 +378,7 @@ class _BotonRecibir extends StatelessWidget {
       ),
       icon: Icon(Icons.download_rounded, size: compacto ? 16 : 18),
       label: const Text(
-        'Recibir',
+        Textos.recibir,
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
     );

@@ -1263,8 +1263,10 @@ class ApiFalsa implements Api {
 
   // --- Alertas ---
 
-  /// Día de negocio contra el que se calculan las caducidades.
-  var hoy = '2026-10-02';
+  /// Día de negocio contra el que se calculan las caducidades. Por omisión es
+  /// hoy: la API falsa no tiene servidor que lo diga. Las pruebas lo fijan
+  /// para que las alertas no dependan del día en que se corran.
+  var hoy = _hoyLocal();
 
   @override
   Future<({String dia, int dias, List<Alerta> alertas})> listarAlertas({
@@ -1409,6 +1411,13 @@ Producto _p(
   creado: '2026-10-02T18:30:00Z',
   actualizado: '2026-10-02T18:30:00Z',
 );
+
+/// Hoy en formato `AAAA-MM-DD`, solo para los datos de la API falsa.
+String _hoyLocal() {
+  final ahora = DateTime.now();
+  return '${ahora.year}-${ahora.month.toString().padLeft(2, '0')}'
+      '-${ahora.day.toString().padLeft(2, '0')}';
+}
 
 List<Producto> productosDePrueba() {
   return [

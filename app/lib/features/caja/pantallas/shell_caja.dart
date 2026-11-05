@@ -12,8 +12,8 @@ import '../../../core/textos.dart';
 import '../../../core/widgets/estados.dart';
 import '../../../core/widgets/indicador_conexion.dart';
 import '../../../core/widgets/marca.dart';
+import '../../alertas/estado/alertas_provider.dart';
 import '../../auth/pantallas/login_diario.dart';
-import '../../catalogo/estado/productos.dart';
 import '../../personal/estado/personal_provider.dart';
 import 'conectar_terminal.dart';
 import 'secciones_caja.dart';
@@ -232,15 +232,7 @@ class _MenuLateral extends ConsumerWidget {
     final c = context.colores;
     final textos = Theme.of(context).textTheme;
     final ip = ref.watch(direccionLocalProvider).value;
-    final productos = ref.watch(productosProvider).value ?? const <Producto>[];
-    final hoy = DateTime.now();
-    final alertas = productos
-        .where(
-          (p) =>
-              p.bajoMinimo ||
-              (p.caducidad != null && diasHasta(p.caducidad!, hoy) <= 15),
-        )
-        .length;
+    final alertas = ref.watch(alertasProvider).value?.alertas.length ?? 0;
 
     return Container(
       width: compacto ? 92 : 240,
