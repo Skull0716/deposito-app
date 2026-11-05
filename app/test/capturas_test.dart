@@ -229,4 +229,19 @@ void main() {
     await tester.tap(find.text('Vender').first);
     await capturar(tester, '14_caja_vender_pedido');
   });
+
+  testWidgets('caja diagnóstico', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    await tester.tap(find.text('Ajustes').first);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Diagnóstico del servidor'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Diagnóstico del servidor'));
+    await capturar(tester, '15_caja_diagnostico');
+  });
 }

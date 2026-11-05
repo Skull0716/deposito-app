@@ -66,6 +66,15 @@ String fechaHora(String iso) =>
 String hora(String iso) =>
     DateFormat('hh:mm a').format(DateTime.parse(iso).toLocal());
 
+/// Tamaño legible: `1843200` → `1.8 MB`, `512` → `512 B`.
+String tamanoLegible(int bytes) {
+  if (bytes < 1024) return '$bytes B';
+  final kb = bytes / 1024;
+  if (kb < 1024) return '${kb.toStringAsFixed(kb < 10 ? 1 : 0)} KB';
+  final mb = kb / 1024;
+  return '${mb.toStringAsFixed(mb < 10 ? 1 : 0)} MB';
+}
+
 /// Días de hoy a [iso] (`AAAA-MM-DD`); negativo si ya pasó.
 int diasHasta(String iso, DateTime hoy) {
   final f = DateTime.parse(iso);

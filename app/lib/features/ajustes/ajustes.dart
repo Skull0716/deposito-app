@@ -13,6 +13,7 @@ import '../../core/widgets/estados.dart';
 import '../personal/estado/personal_provider.dart';
 import '../personal/pantallas/gestion_personal.dart';
 import '../personal/pantallas/seguridad_respaldo.dart';
+import 'pantallas/pantalla_diagnostico.dart';
 
 /// Ajustes de este dispositivo y, en la caja, los del negocio (para el
 /// ticket), el personal y el respaldo.
@@ -167,6 +168,29 @@ class PantallaAjustes extends ConsumerWidget {
                               label: const Text('Cambiar de usuario'),
                             ),
                         ],
+                      ),
+                    ],
+                  ),
+                  _Grupo(
+                    titulo: 'Soporte',
+                    children: [
+                      Text(
+                        'Revisa el estado del servidor o comparte su bitácora '
+                        'cuando algo no responda.',
+                        style: TextStyle(color: c.tinta2, height: 1.4),
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const PantallaDiagnostico(),
+                            ),
+                          ),
+                          icon: const Icon(Icons.monitor_heart_outlined),
+                          label: const Text('Diagnóstico del servidor'),
+                        ),
                       ),
                     ],
                   ),
