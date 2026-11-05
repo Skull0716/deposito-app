@@ -75,6 +75,13 @@ String tamanoLegible(int bytes) {
   return '${mb.toStringAsFixed(mb < 10 ? 1 : 0)} MB';
 }
 
+/// Pesos para precargar un formulario: `4200` → `42`, `4250` → `42.50`.
+String pesosEditables(int centavos) {
+  final pesos = centavos ~/ 100;
+  final resto = centavos % 100;
+  return resto == 0 ? '$pesos' : '$pesos.${resto.toString().padLeft(2, '0')}';
+}
+
 /// Días de hoy a [iso] (`AAAA-MM-DD`); negativo si ya pasó.
 int diasHasta(String iso, DateTime hoy) {
   final f = DateTime.parse(iso);

@@ -68,4 +68,10 @@ void main() {
       expect(tamanoLegible(10 * 1024 * 1024), '10 MB');
     });
   });
+
+  group('pesosEditables', () {
+    test('sin centavos', () => expect(pesosEditables(4200), '42'));
+    test('con centavos', () => expect(pesosEditables(4250), '42.50'));
+    test('centavos de un dígito', () => expect(pesosEditables(4205), '42.05'));
+  });
 }

@@ -9,11 +9,13 @@ Future<void> mostrarDetalleProducto(
   BuildContext context,
   Producto p, {
   List<Widget> acciones = const [],
+  VoidCallback? alEditar,
 }) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
   constraints: const BoxConstraints(maxWidth: 560),
-  builder: (_) => DetalleProducto(producto: p, acciones: acciones),
+  builder: (_) =>
+      DetalleProducto(producto: p, acciones: acciones, alEditar: alEditar),
 );
 
 /// Ficha del producto: precio, existencia y datos del catálogo.
@@ -22,12 +24,16 @@ class DetalleProducto extends StatelessWidget {
     super.key,
     required this.producto,
     this.acciones = const [],
+    this.alEditar,
   });
 
   final Producto producto;
 
   /// Botones al final de la ficha (por ejemplo, agregar al pedido).
   final List<Widget> acciones;
+
+  /// En la caja, abre el formulario para editar el producto.
+  final VoidCallback? alEditar;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +136,14 @@ class DetalleProducto extends StatelessWidget {
               if (acciones.isNotEmpty) ...[
                 const SizedBox(height: 18),
                 ...acciones,
+              ],
+              if (alEditar != null) ...[
+                const SizedBox(height: 18),
+                OutlinedButton.icon(
+                  onPressed: alEditar,
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('Editar producto'),
+                ),
               ],
             ],
           ),

@@ -10,16 +10,22 @@ import '../../../core/formato/formato.dart';
 import '../../../core/textos.dart';
 import '../../../core/widgets/estados.dart';
 
-Future<Producto?> abrirFormularioProducto(BuildContext context) =>
-    showDialog<Producto>(
-      context: context,
-      builder: (_) => const FormularioProducto(),
-    );
+Future<Producto?> abrirFormularioProducto(
+  BuildContext context, {
+  Producto? producto,
+}) => showDialog<Producto>(
+  context: context,
+  builder: (_) => FormularioProducto(producto: producto),
+);
 
-/// Alta de producto. Valida lo básico en pantalla; las reglas finales las
-/// pone el servidor y sus errores se muestran en el campo que corresponde.
+/// Alta o edición de producto. Valida lo básico en pantalla; las reglas
+/// finales las pone el servidor y sus errores se muestran en el campo que
+/// corresponde.
 class FormularioProducto extends ConsumerStatefulWidget {
-  const FormularioProducto({super.key});
+  const FormularioProducto({super.key, this.producto});
+
+  /// Con un producto, el formulario lo edita; sin él, da de alta uno nuevo.
+  final Producto? producto;
 
   @override
   ConsumerState<FormularioProducto> createState() => _FormularioProductoState();
@@ -40,6 +46,29 @@ class _FormularioProductoState extends ConsumerState<FormularioProducto> {
   DateTime? _caducidad;
   var _guardando = false;
   Map<String, String> _errores = {};
+
+  bool get _editando => widget.producto != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final p = widget.producto;
+    if (p == null) return;
+    _codigo.text = p.codigo;
+    _nombre.text = p.nombre;
+    _categoria.text = p.categoria;
+    _presentacion.text = p.presentacion ?? '';
+    _precio.text = pesosEditables(p.precio);
+    _porCaja = p.precioCaja != null || p.piezasPorCaja != null;
+    _precioCaja.text = p.precioCaja == null
+        ? ''
+        : pesosEditables(p.precioCaja!);
+    _piezasPorCaja.text = p.piezasPorCaja?.toString() ?? '';
+    _existencia.text = p.existenciaPiezas.toString();
+    _minimo.text = p.minimo.toString();
+    _envase = p.envase;
+    _caducidad = p.caducidad == null ? null : DateTime.tryParse(p.caducidad!);
+  }
 
   @override
   void dispose() {
@@ -69,6 +98,10 @@ class _FormularioProductoState extends ConsumerState<FormularioProducto> {
     if (_porCaja && (precioCaja == null || precioCaja == 0)) {
       errores['precioCaja'] = 'Escribe el precio de la caja';
     }
+    final piezasPorCaja = _porCaja ? int.tryParse(_piezasPorCaja.text) : null;
+    if (_porCaja && (piezasPorCaja == null || piezasPorCaja <= 0)) {
+      errores['piezasPorCaja'] = 'Escribe cuántas piezas trae la caja';
+    }
     setState(() => _errores = errores);
     if (errores.isNotEmpty) return;
 
@@ -77,26 +110,36 @@ class _FormularioProductoState extends ConsumerState<FormularioProducto> {
       'codigo': _codigo.text.trim(),
       'nombre': _nombre.text.trim(),
       'categoria': _categoria.text.trim().toLowerCase(),
-      if (_presentacion.text.trim().isNotEmpty)
-        'presentacion': _presentacion.text.trim(),
+      'presentacion': _presentacion.text.trim().isEmpty
+          ? null
+          : _presentacion.text.trim(),
       'precio': precio,
-      if (_porCaja) 'precioCaja': precioCaja,
-      if (_porCaja) 'piezasPorCaja': int.tryParse(_piezasPorCaja.text) ?? 0,
-      'existenciaPiezas': int.tryParse(_existencia.text) ?? 0,
+      'precioCaja': _porCaja ? precioCaja : null,
+      'piezasPorCaja': _porCaja ? piezasPorCaja : null,
       'minimo': int.tryParse(_minimo.text) ?? 0,
       'envase': _envase,
-      if (caducidad != null)
-        'caducidad':
-            '${caducidad.year}-${caducidad.month.toString().padLeft(2, '0')}-${caducidad.day.toString().padLeft(2, '0')}',
+      'caducidad': caducidad == null
+          ? null
+          : '${caducidad.year}-${caducidad.month.toString().padLeft(2, '0')}-${caducidad.day.toString().padLeft(2, '0')}',
+      // El servidor ignora la existencia al editar: solo cambia con
+      // entradas y ajustes (docs/API.md).
+      if (!_editando) 'existenciaPiezas': int.tryParse(_existencia.text) ?? 0,
     };
 
     setState(() => _guardando = true);
     try {
       final api = await ref.read(apiProvider.future);
-      final producto = await api.crearProducto(datos);
+      final producto = _editando
+          ? await api.editarProducto(widget.producto!.id, datos)
+          : await api.crearProducto(datos);
       if (!mounted) return;
       Navigator.pop(context, producto);
-      avisar(context, '${producto.nombre} quedó en el catálogo');
+      avisar(
+        context,
+        _editando
+            ? '${producto.nombre} se actualizó'
+            : '${producto.nombre} quedó en el catálogo',
+      );
     } on FalloApi catch (e) {
       setState(() {
         _guardando = false;
@@ -156,7 +199,10 @@ class _FormularioProductoState extends ConsumerState<FormularioProducto> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text('Nuevo producto', style: textos.headlineMedium),
+                    child: Text(
+                      _editando ? 'Editar producto' : 'Nuevo producto',
+                      style: textos.headlineMedium,
+                    ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -240,14 +286,21 @@ class _FormularioProductoState extends ConsumerState<FormularioProducto> {
                           teclado: TextInputType.number,
                         ),
                       ]),
-                    campo(
-                      'existenciaPiezas',
-                      'Existencia inicial (piezas)',
-                      _existencia,
-                      formato: soloNumeros,
-                      teclado: TextInputType.number,
-                      ayuda: 'Queda registrada como movimiento de inventario',
-                    ),
+                    if (_editando)
+                      Text(
+                        'La existencia no se cambia aquí: usa Recibir '
+                        'mercancía o un ajuste de inventario.',
+                        style: TextStyle(color: c.tinta2, fontSize: 13),
+                      )
+                    else
+                      campo(
+                        'existenciaPiezas',
+                        'Existencia inicial (piezas)',
+                        _existencia,
+                        formato: soloNumeros,
+                        teclado: TextInputType.number,
+                        ayuda: 'Queda registrada como movimiento de inventario',
+                      ),
                     Text(
                       'Envase retornable',
                       style: textos.labelMedium?.copyWith(color: c.tinta2),
@@ -313,7 +366,9 @@ class _FormularioProductoState extends ConsumerState<FormularioProducto> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.check_rounded),
-                    label: const Text('Guardar producto'),
+                    label: Text(
+                      _editando ? 'Guardar cambios' : 'Guardar producto',
+                    ),
                   ),
                 ],
               ),
