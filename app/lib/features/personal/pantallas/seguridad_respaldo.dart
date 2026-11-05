@@ -318,7 +318,8 @@ class _SeguridadRespaldoState extends ConsumerState<SeguridadRespaldo> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Crea una copia cifrada de la información de tu servidor.',
+                    'Crea una copia completa de la información de tu servidor '
+                    'para guardarla fuera del iPad.',
                     style: TextStyle(
                       fontSize: 15,
                       color: c.tinta2,
@@ -389,7 +390,7 @@ class _SeguridadRespaldoState extends ConsumerState<SeguridadRespaldo> {
                       ),
                     ),
                     child: Text(
-                      _generando ? 'Generando...' : 'Generar Respaldo Manual',
+                      _generando ? 'Generando…' : 'Generar respaldo manual',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
