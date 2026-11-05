@@ -59,7 +59,7 @@ En la app, cada `feature` tiene `datos` (llamadas a la API), `estado` (providers
 - Componentes compartidos en `core/widgets/` para confirmar, mostrar errores, estado vacío y cargando. No se crea un diálogo nuevo por pantalla.
 - Toda pantalla que carga datos maneja cargando, error, vacío y con datos.
 - Al reconectarse, la app vuelve a pedir los datos completos.
-- Los textos visibles van en el archivo de textos compartido, con acentos.
+- Los textos visibles van en `app/lib/core/textos.dart` (`Textos.*`), con acentos. Los textos propios de una sola pantalla pueden quedarse en su archivo; si se repiten, se mueven a `Textos`.
 
 ## Código
 

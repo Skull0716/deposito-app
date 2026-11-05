@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/tema/colores.dart';
 import '../../../core/formato/formato.dart';
+import '../../../core/textos.dart';
 import '../datos/modelos_envases.dart';
 import '../estado/envases_provider.dart';
 import 'selector_envases.dart';
@@ -181,7 +182,7 @@ class _ModalRecepcionEnvasesState extends ConsumerState<ModalRecepcionEnvases> {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Cerrar',
+                    tooltip: Textos.cerrar,
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close_rounded),
                     color: c.tinta2,

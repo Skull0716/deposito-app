@@ -1,20 +1,20 @@
-import '../../personal/estado/personal_provider.dart';
-import '../../auth/pantallas/login_diario.dart';
-import '../../../core/api/fallo_api.dart';
-
 import 'package:deposito_backend/deposito_backend.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/tema/colores.dart';
+import '../../../core/api/fallo_api.dart';
 import '../../../core/config/configuracion.dart';
 import '../../../core/formato/formato.dart';
 import '../../../core/servidor/servidor_embebido.dart';
+import '../../../core/textos.dart';
 import '../../../core/widgets/estados.dart';
 import '../../../core/widgets/indicador_conexion.dart';
 import '../../../core/widgets/marca.dart';
+import '../../auth/pantallas/login_diario.dart';
 import '../../catalogo/estado/productos.dart';
+import '../../personal/estado/personal_provider.dart';
 import 'conectar_terminal.dart';
 import 'secciones_caja.dart';
 
@@ -63,7 +63,7 @@ class ShellCaja extends ConsumerWidget {
               FilledButton.icon(
                 onPressed: () => ref.invalidate(servidorEmbebidoProvider),
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Reintentar'),
+                label: const Text(Textos.reintentar),
               ),
             ],
           ),

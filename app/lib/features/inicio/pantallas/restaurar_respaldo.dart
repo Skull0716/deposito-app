@@ -7,9 +7,10 @@ import '../../../../app/tema/colores.dart';
 import '../../../../core/config/configuracion.dart';
 import '../../../../core/servidor/servidor_embebido.dart';
 import '../../../../core/widgets/campo_pin.dart';
+import '../../../../core/widgets/cargador_nexo.dart';
 import '../../../../core/widgets/estados.dart';
 import '../../../../core/widgets/teclado_numerico.dart';
-import '../../../../core/widgets/cargador_nexo.dart';
+import '../../../core/textos.dart';
 
 /// Restaurar la caja desde un respaldo (diseño de Pablo): se elige el
 /// archivo, se confirma con el PIN del dueño de ESE respaldo y reemplaza la
@@ -114,7 +115,7 @@ class _RestaurarRespaldoState extends ConsumerState<RestaurarRespaldo> {
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
                 label: const Text(
-                  'Volver',
+                  Textos.volver,
                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                 ),
                 style: TextButton.styleFrom(

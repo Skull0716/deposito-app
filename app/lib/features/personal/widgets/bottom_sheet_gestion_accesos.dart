@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/tema/colores.dart';
+import '../../../core/textos.dart';
 
 class BottomSheetGestionAccesos extends StatelessWidget {
   const BottomSheetGestionAccesos({
@@ -39,7 +40,7 @@ class BottomSheetGestionAccesos extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: TextStyle(color: c.tinta2)),
+            child: Text(Textos.cancelar, style: TextStyle(color: c.tinta2)),
           ),
           TextButton(
             onPressed: () {
@@ -155,7 +156,10 @@ class BottomSheetGestionAccesos extends StatelessWidget {
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
                   style: TextButton.styleFrom(foregroundColor: c.tinta2),
-                  child: const Text('Cancelar', style: TextStyle(fontSize: 14)),
+                  child: const Text(
+                    Textos.cancelar,
+                    style: TextStyle(fontSize: 14),
+                  ),
                 ),
               ),
             ],

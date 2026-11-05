@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,7 +23,11 @@ class VincularTerminal extends ConsumerStatefulWidget {
 
 class _VincularTerminalState extends ConsumerState<VincularTerminal> {
   final _nombre = TextEditingController(
-    text: Platform.isIOS ? 'iPhone' : 'Terminal S24',
+    // `defaultTargetPlatform` funciona también en web, donde `dart:io`
+    // (`Platform.isIOS`) lanza UnsupportedError.
+    text: defaultTargetPlatform == TargetPlatform.iOS
+        ? 'iPhone'
+        : 'Terminal S24',
   );
   final _host = TextEditingController();
   final _puerto = TextEditingController(text: '8080');
@@ -44,7 +48,7 @@ class _VincularTerminalState extends ConsumerState<VincularTerminal> {
     final texto = await escanearCodigo(
       context,
       titulo: 'Código de la caja',
-      ayuda: 'En la caja toca "Conectar terminal"',
+      ayuda: 'En la caja toca "Vincular Terminal"',
     );
     if (texto == null) return;
     try {
@@ -54,7 +58,7 @@ class _VincularTerminalState extends ConsumerState<VincularTerminal> {
       _codigo.text = datos['codigo'] as String;
     } on Object {
       setState(
-        () => _error = 'Ese no es el código de la caja. Escanea el QR de "Conectar terminal".',
+        () => _error = 'Ese no es el código de la caja. Escanea el QR de "Vincular Terminal".',
       );
       return;
     }
@@ -136,7 +140,7 @@ class _VincularTerminalState extends ConsumerState<VincularTerminal> {
                   Text('Vincula esta terminal', style: textos.displaySmall),
                   const SizedBox(height: 8),
                   Text(
-                    'En la caja toca "Conectar terminal" y escanea el código que aparece. '
+                    'En la caja toca "Vincular Terminal" y escanea el código que aparece. '
                     'El teléfono y la caja deben estar en la misma Wi-Fi.',
                     style: textos.bodyLarge?.copyWith(color: c.tinta2),
                   ),

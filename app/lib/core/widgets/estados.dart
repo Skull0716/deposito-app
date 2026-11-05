@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/tema/colores.dart';
 import '../api/fallo_api.dart';
+import '../textos.dart';
 
 /// Estado vacío con ícono, título, explicación y una acción opcional.
 /// Toda pantalla con datos lo usa en lugar de dejar el espacio en blanco.
@@ -75,14 +76,14 @@ class EstadoError extends StatelessWidget {
     final sinConexion = error is FalloApi && (error as FalloApi).sinConexion;
     return EstadoVacio(
       icono: sinConexion ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
-      titulo: sinConexion ? 'Sin conexión con la caja' : 'Algo salió mal',
+      titulo: sinConexion ? Textos.sinConexionCaja : Textos.algoSalioMal,
       mensaje: mensajeDeError(error),
       accion: alReintentar == null
           ? null
           : OutlinedButton.icon(
               onPressed: alReintentar,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Reintentar'),
+              label: const Text(Textos.reintentar),
             ),
     );
   }
@@ -94,20 +95,25 @@ class Cargando extends StatelessWidget {
   final String? mensaje;
 
   @override
-  Widget build(BuildContext context) => Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(
-          width: 32,
-          height: 32,
-          child: CircularProgressIndicator(strokeWidth: 3),
-        ),
-        if (mensaje != null) ...[
-          const SizedBox(height: 14),
-          Text(mensaje!, style: TextStyle(color: context.colores.tinta2)),
+  Widget build(BuildContext context) => Semantics(
+    label: mensaje ?? Textos.cargando,
+    liveRegion: true,
+    excludeSemantics: true,
+    child: Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(
+            width: 32,
+            height: 32,
+            child: CircularProgressIndicator(strokeWidth: 3),
+          ),
+          if (mensaje != null) ...[
+            const SizedBox(height: 14),
+            Text(mensaje!, style: TextStyle(color: context.colores.tinta2)),
+          ],
         ],
-      ],
+      ),
     ),
   );
 }
@@ -130,7 +136,7 @@ Future<bool> confirmar(
       actions: [
         OutlinedButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancelar'),
+          child: const Text(Textos.cancelar),
         ),
         FilledButton(
           style: peligrosa

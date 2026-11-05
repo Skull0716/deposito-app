@@ -4,5 +4,11 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
+	<!-- La caja abre la API en la red local y sus pantallas la consumen por
+	     HTTP en 127.0.0.1; en release también hacen falta ambos permisos. -->
+	<key>com.apple.security.network.server</key>
+	<true/>
+	<key>com.apple.security.network.client</key>
+	<true/>
 </dict>
 </plist>

@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../api/api.dart';
 import '../servidor/servidor_embebido.dart';
+import '../textos.dart';
 
 /// Cuántos respaldos guarda el iPad; los más viejos se borran.
 const maximoRespaldos = 30;
@@ -42,6 +43,6 @@ Future<File> guardarRespaldo(Api api) async {
 Future<void> compartirRespaldo(File archivo) => SharePlus.instance.share(
   ShareParams(
     files: [XFile(archivo.path, mimeType: 'application/vnd.sqlite3')],
-    subject: 'Respaldo de Anaquel',
+    subject: Textos.respaldoDeAnaquel,
   ),
 );

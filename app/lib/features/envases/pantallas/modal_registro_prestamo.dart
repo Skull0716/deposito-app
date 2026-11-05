@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/tema/colores.dart';
+import '../../../core/textos.dart';
 import '../datos/modelos_envases.dart';
 import 'selector_envases.dart';
 
@@ -146,7 +147,7 @@ class _ModalRegistroPrestamoState extends State<ModalRegistroPrestamo> {
                         ),
                       ),
                       IconButton(
-                        tooltip: 'Cerrar',
+                        tooltip: Textos.cerrar,
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.close_rounded),
                         color: c.tinta2,

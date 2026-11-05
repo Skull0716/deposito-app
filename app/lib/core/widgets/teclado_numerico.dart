@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/tema/colores.dart';
+import '../textos.dart';
 
 class TecladoNumerico extends StatelessWidget {
   const TecladoNumerico({
@@ -34,6 +35,7 @@ class TecladoNumerico extends StatelessWidget {
         _Tecla(numero: '0', alPresionar: alPresionarTecla, color: c.tinta),
         _TeclaIcono(
           icono: Icons.backspace_outlined,
+          etiqueta: Textos.borrar,
           alPresionar: alBorrar,
           color: c.tinta,
         ),
@@ -78,23 +80,30 @@ class _Tecla extends StatelessWidget {
 class _TeclaIcono extends StatelessWidget {
   const _TeclaIcono({
     required this.icono,
+    required this.etiqueta,
     required this.alPresionar,
     required this.color,
   });
 
   final IconData icono;
+  final String etiqueta;
   final VoidCallback alPresionar;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: alPresionar,
-        child: Center(
-          child: Icon(icono, size: 28, color: color.withValues(alpha: 0.7)),
+    return Semantics(
+      button: true,
+      label: etiqueta,
+      excludeSemantics: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: alPresionar,
+          child: Center(
+            child: Icon(icono, size: 28, color: color.withValues(alpha: 0.7)),
+          ),
         ),
       ),
     );

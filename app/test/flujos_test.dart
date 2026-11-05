@@ -11,7 +11,7 @@ void main() {
       await montarApp(tester, tamano: const Size(412, 915));
       expect(find.text('Configura tu punto de venta'), findsOneWidget);
 
-      await tester.tap(find.text('Conectar Celular como Terminal'));
+      await tester.tap(find.text('Vincular Celular como Terminal'));
       await tester.pumpAndSettle();
 
       expect(find.text('Vincula esta terminal'), findsOneWidget);

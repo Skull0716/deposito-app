@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/tema/colores.dart';
 import '../../../../core/api/fallo_api.dart';
 import '../../../../core/widgets/estados.dart';
+import '../../../core/textos.dart';
 import '../../ventas/pantallas/modal_autorizacion_numpad.dart';
 import '../estado/personal_provider.dart';
 import '../widgets/bottom_sheet_gestion_accesos.dart';
@@ -100,11 +101,11 @@ class _GestionPersonalState extends ConsumerState<GestionPersonal> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(contexto),
-            child: const Text('Cancelar'),
+            child: const Text(Textos.cancelar),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(contexto, control.text.trim()),
-            child: const Text('Guardar'),
+            child: const Text(Textos.guardar),
           ),
         ],
       ),

@@ -7,6 +7,7 @@ import '../../../app/tema/colores.dart';
 import '../../../core/api/fallo_api.dart';
 import '../../../core/api/proveedores.dart';
 import '../../../core/formato/formato.dart';
+import '../../../core/textos.dart';
 import '../../../core/widgets/estados.dart';
 
 Future<Producto?> abrirFormularioProducto(BuildContext context) =>
@@ -160,7 +161,7 @@ class _FormularioProductoState extends ConsumerState<FormularioProducto> {
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close_rounded),
-                    tooltip: 'Cerrar',
+                    tooltip: Textos.cerrar,
                   ),
                 ],
               ),
@@ -301,7 +302,7 @@ class _FormularioProductoState extends ConsumerState<FormularioProducto> {
                 children: [
                   OutlinedButton(
                     onPressed: _guardando ? null : () => Navigator.pop(context),
-                    child: const Text('Cancelar'),
+                    child: const Text(Textos.cancelar),
                   ),
                   FilledButton.icon(
                     onPressed: _guardando ? null : _guardar,

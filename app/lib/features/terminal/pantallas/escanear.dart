@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/tema/colores.dart';
 import '../../../core/formato/formato.dart';
+import '../../../core/textos.dart';
 import '../../../core/widgets/estados.dart';
 import '../../../core/widgets/ilustracion_producto.dart';
 import '../../catalogo/estado/productos.dart';
@@ -98,7 +99,7 @@ class _PantallaEscanearState extends ConsumerState<PantallaEscanear> {
             FilledButton(
               onPressed: () => _buscar(_codigo.text),
               style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
-              child: const Text('Buscar'),
+              child: const Text(Textos.buscar),
             ),
           ],
         ),

@@ -157,7 +157,7 @@ class _Tablero extends ConsumerWidget {
                     accion: TextButton.icon(
                       onPressed: () => mostrarConectarTerminal(context),
                       icon: const Icon(Icons.add_rounded, size: 20),
-                      label: const Text('Conectar'),
+                      label: const Text('Vincular'),
                     ),
                     child: terminales.isEmpty
                         ? Padding(

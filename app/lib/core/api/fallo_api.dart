@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 
+import '../textos.dart';
+
 /// Error de la API ya traducido para mostrarlo en pantalla.
 ///
 /// [codigo] es el del contrato (`datos_invalidos`, `no_autorizado`...) o
@@ -27,7 +29,7 @@ class FalloApi implements Exception {
       final error = datos['error'] as Map;
       return FalloApi(
         error['codigo'] as String? ?? 'error',
-        error['mensaje'] as String? ?? 'Ocurrió un error',
+        error['mensaje'] as String? ?? Textos.ocurrioUnError,
         campos: (error['campos'] as Map?)?.cast<String, String>() ?? const {},
         estado: e.response?.statusCode,
       );
@@ -38,11 +40,11 @@ class FalloApi implements Exception {
       DioExceptionType.receiveTimeout ||
       DioExceptionType.sendTimeout => const FalloApi(
         'sin_conexion',
-        'No hay conexión con la caja. Revisa que estén en la misma Wi-Fi.',
+        Textos.sinConexionWiFi,
       ),
       _ => FalloApi(
         'error',
-        'Respuesta inesperada del servidor (${e.response?.statusCode ?? 'sin código'})',
+        Textos.respuestaInesperada(e.response?.statusCode),
         estado: e.response?.statusCode,
       ),
     };
@@ -54,4 +56,4 @@ class FalloApi implements Exception {
 
 /// Mensaje legible para cualquier error que llegue a una pantalla.
 String mensajeDeError(Object error) =>
-    error is FalloApi ? error.mensaje : 'Ocurrió un error inesperado.';
+    error is FalloApi ? error.mensaje : Textos.errorInesperado;

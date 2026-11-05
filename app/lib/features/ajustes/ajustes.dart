@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/tema/colores.dart';
-import '../../core/config/configuracion.dart';
-import '../../core/servidor/servidor_embebido.dart';
 import '../../core/api/fallo_api.dart';
 import '../../core/api/proveedores.dart';
+import '../../core/config/configuracion.dart';
+import '../../core/servidor/servidor_embebido.dart';
+import '../../core/textos.dart';
 import '../../core/ticket/ticket_pdf.dart';
 import '../../core/widgets/estados.dart';
 import '../personal/estado/personal_provider.dart';
@@ -309,7 +310,7 @@ class _DatosNegocioState extends ConsumerState<_DatosNegocio> {
           child: FilledButton.icon(
             onPressed: _guardando ? null : _guardar,
             icon: const Icon(Icons.save_outlined),
-            label: const Text('Guardar'),
+            label: const Text(Textos.guardar),
           ),
         ),
       ],

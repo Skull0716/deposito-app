@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/tema/colores.dart';
 import '../../../core/formato/formato.dart';
+import '../../../core/textos.dart';
 import '../../../core/widgets/estados.dart';
 import '../../../core/widgets/ilustracion_producto.dart';
 import '../../catalogo/estado/productos.dart';
@@ -48,7 +49,7 @@ class DetalleTicket extends ConsumerWidget {
                 ),
               ),
               leading: IconButton(
-                tooltip: 'Volver',
+                tooltip: Textos.volver,
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 onPressed: () => Navigator.pop(context),
               ),

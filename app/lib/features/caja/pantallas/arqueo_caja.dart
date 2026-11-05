@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/tema/colores.dart';
 import '../../../../core/formato/formato.dart';
+import '../../../core/textos.dart';
 
 /// Billete o moneda del arqueo. Todo en centavos.
 class Denominacion {
@@ -76,7 +77,7 @@ class _ArqueoCajaState extends State<ArqueoCaja> {
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
           label: const Text(
-            'Volver',
+            Textos.volver,
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
           style: TextButton.styleFrom(

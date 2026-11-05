@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/tema/colores.dart';
+import '../../../../core/textos.dart';
 import '../../../../core/widgets/cargador_nexo.dart';
 
 class InicializandoBD extends StatefulWidget {
@@ -80,8 +81,8 @@ class _InicializandoBDState extends State<InicializandoBD> {
               ),
               child: Text(
                 _terminado
-                    ? '¡Base de datos lista!'
-                    : 'Inicializando base de datos local...',
+                    ? Textos.baseDatosLista
+                    : Textos.inicializandoBaseDatos,
               ),
             ),
           ],

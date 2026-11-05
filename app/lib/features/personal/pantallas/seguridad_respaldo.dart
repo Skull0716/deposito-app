@@ -8,6 +8,7 @@ import '../../../../core/api/proveedores.dart';
 import '../../../../core/formato/formato.dart';
 import '../../../../core/respaldo/respaldos.dart';
 import '../../../../core/widgets/estados.dart';
+import '../../../core/textos.dart';
 
 /// Seguridad y respaldo (diseño de Pablo): copia completa de la base para
 /// guardarla fuera del iPad. Además, cada corte de caja guarda una sola.
@@ -149,7 +150,7 @@ class _SeguridadRespaldoState extends ConsumerState<SeguridadRespaldo> {
                   ),
                 ),
                 child: const Text(
-                  'Continuar',
+                  Textos.continuar,
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -160,7 +161,7 @@ class _SeguridadRespaldoState extends ConsumerState<SeguridadRespaldo> {
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
                 style: TextButton.styleFrom(foregroundColor: c.tinta2),
-                child: const Text('Cancelar'),
+                child: const Text(Textos.cancelar),
               ),
             ),
           ],
@@ -238,7 +239,10 @@ class _SeguridadRespaldoState extends ConsumerState<SeguridadRespaldo> {
                     foregroundColor: c.tinta2,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: const Text('Cancelar', style: TextStyle(fontSize: 16)),
+                  child: const Text(
+                    Textos.cancelar,
+                    style: TextStyle(fontSize: 16),
+                  ),
                 ),
               ),
             ],
@@ -269,7 +273,7 @@ class _SeguridadRespaldoState extends ConsumerState<SeguridadRespaldo> {
                       size: 16,
                     ),
                     label: const Text(
-                      'Volver',
+                      Textos.volver,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,

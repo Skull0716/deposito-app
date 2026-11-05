@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/tema/colores.dart';
 import '../../../../core/widgets/campo_pin.dart';
 import '../../../../core/widgets/teclado_numerico.dart';
+import '../../../core/textos.dart';
 
 class CrearCuentaMaestra extends StatefulWidget {
   const CrearCuentaMaestra({super.key, required this.alCompletar});
@@ -154,7 +155,7 @@ class _CrearCuentaMaestraState extends State<CrearCuentaMaestra> {
                           size: 16,
                         ),
                         label: const Text(
-                          'Volver',
+                          Textos.volver,
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
@@ -331,7 +332,7 @@ class _CrearCuentaMaestraState extends State<CrearCuentaMaestra> {
                           elevation: 0,
                         ),
                         child: Text(
-                          _confirmando ? 'Confirmar PIN' : 'Continuar',
+                          _confirmando ? 'Confirmar PIN' : Textos.continuar,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,

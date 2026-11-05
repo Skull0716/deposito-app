@@ -89,18 +89,18 @@ void main() {
     await capturar(tester, '05_caja_nuevo_producto');
   });
 
-  testWidgets('caja conectar terminal', skip: omitir != null, (tester) async {
+  testWidgets('caja vincular terminal', skip: omitir != null, (tester) async {
     await montarApp(
       tester,
       preferencias: prefsCaja,
       tamano: ipad,
       tema: ThemeMode.light,
     );
-    await tester.tap(find.text('Conectar terminal').first);
+    await tester.tap(find.text('Vincular Terminal').first);
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 500));
     // Sin pumpAndSettle: el diálogo tiene un reloj que nunca se detiene.
-    await capturar(tester, '06_caja_conectar_terminal', esperar: false);
+    await capturar(tester, '06_caja_vincular_terminal', esperar: false);
     // Cierra el diálogo para cancelar sus temporizadores.
     await tester.tap(find.byTooltip('Cerrar'));
     await tester.pumpAndSettle();
