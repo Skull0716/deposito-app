@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:deposito_app/core/api/api_falsa.dart';
+import 'package:deposito_app/features/catalogo/pantallas/modal_importar_inventario.dart';
 import 'package:deposito_backend/deposito_backend.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -179,5 +182,68 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(api.productos.first.foto, isNull);
+  });
+
+  testWidgets('la importación revisa el CSV antes de guardar', (tester) async {
+    final api = ApiFalsa();
+    await montarApp(tester, preferencias: prefsCaja, api: api);
+    final context = tester.element(find.byType(Scaffold).first);
+
+    unawaited(
+      showDialog<ResultadoImportacion>(
+        context: context,
+        builder: (_) => const DialogoImportarInventario(
+          nombreArchivo: 'inventario.csv',
+          csv:
+              'codigo,nombre,categoria,precio,existencia\n'
+              '7501064191015,Victoria Mega,cerveza,42.00,80\n'
+              '7509999999999,Nueva Cerveza,cerveza,30,10\n',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Importar inventario'), findsOneWidget);
+    expect(find.text('inventario.csv'), findsOneWidget);
+    expect(find.text('1 nuevo'), findsOneWidget);
+    expect(find.text('1 actualizado'), findsOneWidget);
+    expect(find.text('Todo listo para importar.'), findsOneWidget);
+    expect(find.text('Cambios de existencia'), findsOneWidget);
+    expect(find.text('66 a 80 pz'), findsOneWidget);
+
+    await tester.tap(find.text('Aplicar importación'));
+    await tester.pumpAndSettle();
+
+    expect(api.productos.length, 7);
+    expect(api.productos.firstWhere((p) => p.id == 'p_1').existenciaPiezas, 80);
+    expect(
+      api.productos.firstWhere((p) => p.codigo == '7509999999999').nombre,
+      'Nueva Cerveza',
+    );
+  });
+
+  testWidgets('la importación con errores no deja guardar', (tester) async {
+    final api = ApiFalsa();
+    await montarApp(tester, preferencias: prefsCaja, api: api);
+    final context = tester.element(find.byType(Scaffold).first);
+
+    unawaited(
+      showDialog<ResultadoImportacion>(
+        context: context,
+        builder: (_) => const DialogoImportarInventario(
+          nombreArchivo: 'inventario.csv',
+          csv:
+              'codigo,nombre,categoria,precio\n'
+              '7501064191015,Victoria Mega,cerveza,\n',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Errores (1)'), findsOneWidget);
+    expect(find.text('Renglón 2 · 7501064191015'), findsOneWidget);
+    expect(find.text('precio: Es obligatorio'), findsOneWidget);
+    expect(find.text('Aplicar importación'), findsNothing);
+    expect(api.productos.first.existenciaPiezas, 66);
   });
 }

@@ -2,9 +2,12 @@
 // No corre en el CI: solo cuando se define CAPTURAS con la carpeta de salida.
 //
 //   CAPTURAS=/tmp/capturas flutter test test/capturas_test.dart
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show ImageByteFormat;
 
+import 'package:deposito_backend/deposito_backend.dart';
+import 'package:deposito_app/features/catalogo/pantallas/modal_importar_inventario.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -141,6 +144,29 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Editar producto'));
     await capturar(tester, '17_caja_producto_editar');
+  });
+
+  testWidgets('caja importar inventario', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    final context = tester.element(find.byType(Scaffold).first);
+    unawaited(
+      showDialog<ResultadoImportacion>(
+        context: context,
+        builder: (_) => const DialogoImportarInventario(
+          nombreArchivo: 'inventario-2026-11-05.csv',
+          csv:
+              'codigo,nombre,categoria,precio,existencia\n'
+              '7501064191015,Victoria Mega,cerveza,42.00,80\n'
+              '7509999999999,Nueva Cerveza,cerveza,30,10\n',
+        ),
+      ),
+    );
+    await capturar(tester, '18_caja_importar_inventario');
   });
 
   testWidgets('caja vincular terminal', skip: omitir != null, (tester) async {

@@ -136,7 +136,7 @@ class _EdicionRenglonState extends ConsumerState<EdicionRenglon> {
                 labelText: 'Aplicar descuento (%)',
                 counterText: '',
                 helperText: actual.descuento > 0
-                    ? '${dinero(actual.precioLista)} → '
+                    ? '${dinero(actual.precioLista)} a '
                           '${dinero(actual.precioUnitario)} c/u'
                     : 'De 0 a 99 %',
                 filled: true,
