@@ -3,15 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/tema/colores.dart';
-import '../../core/config/configuracion.dart';
-import '../../core/servidor/servidor_embebido.dart';
 import '../../core/api/fallo_api.dart';
 import '../../core/api/proveedores.dart';
+import '../../core/config/configuracion.dart';
+import '../../core/servidor/servidor_embebido.dart';
+import '../../core/textos.dart';
 import '../../core/ticket/ticket_pdf.dart';
 import '../../core/widgets/estados.dart';
 import '../personal/estado/personal_provider.dart';
 import '../personal/pantallas/gestion_personal.dart';
 import '../personal/pantallas/seguridad_respaldo.dart';
+import 'pantallas/pantalla_diagnostico.dart';
 
 /// Ajustes de este dispositivo y, en la caja, los del negocio (para el
 /// ticket), el personal y el respaldo.
@@ -169,6 +171,29 @@ class PantallaAjustes extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  _Grupo(
+                    titulo: 'Soporte',
+                    children: [
+                      Text(
+                        'Revisa el estado del servidor o comparte su bitácora '
+                        'cuando algo no responda.',
+                        style: TextStyle(color: c.tinta2, height: 1.4),
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const PantallaDiagnostico(),
+                            ),
+                          ),
+                          icon: const Icon(Icons.monitor_heart_outlined),
+                          label: const Text('Diagnóstico del servidor'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ],
             ),
@@ -309,7 +334,7 @@ class _DatosNegocioState extends ConsumerState<_DatosNegocio> {
           child: FilledButton.icon(
             onPressed: _guardando ? null : _guardar,
             icon: const Icon(Icons.save_outlined),
-            label: const Text('Guardar'),
+            label: const Text(Textos.guardar),
           ),
         ),
       ],

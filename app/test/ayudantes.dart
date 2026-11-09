@@ -30,10 +30,15 @@ Future<void> montarApp(
   Api? api,
   Size tamano = const Size(1366, 1024),
   ThemeMode? tema,
+  double? escalaTexto,
 }) async {
   tester.view.physicalSize = tamano;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
+  if (escalaTexto != null) {
+    tester.platformDispatcher.textScaleFactorTestValue = escalaTexto;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+  }
 
   SharedPreferences.setMockInitialValues({
     if (tema != null) 'tema': tema.name,

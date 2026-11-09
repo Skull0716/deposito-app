@@ -1,4 +1,5 @@
 import 'package:deposito_app/core/api/api_falsa.dart';
+import 'package:deposito_backend/deposito_backend.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -98,5 +99,48 @@ void main() {
     final corte = (await api.listarCortes()).single;
     expect((corte.diferencia, corte.nota), (-10000, 'Faltó cambio'));
     expect(find.text('Faltó cambio'), findsOneWidget);
+  });
+
+  testWidgets('el inicio muestra el turno abierto y lo vendido', (
+    tester,
+  ) async {
+    final api = ApiFalsa();
+    await api.registrarVenta(
+      lineas: [
+        const LineaVenta(productoId: 'p_4', porCaja: false, cantidad: 2),
+      ],
+      metodo: 'efectivo',
+      recibido: 10000,
+      claveIdempotencia: 'prueba-inicio-1',
+    );
+    await montarApp(tester, preferencias: prefsCaja, api: api);
+
+    expect(find.text('Caja abierta'), findsOneWidget);
+    expect(find.text('Ventas del turno'), findsOneWidget);
+    expect(find.text(r'$70'), findsOneWidget);
+    expect(find.text('1 venta'), findsOneWidget);
+    expect(find.text('Efectivo esperado'), findsOneWidget);
+    expect(find.text(r'$570'), findsOneWidget);
+
+    await tester.tap(find.text('Corte de caja').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Historial de Movimientos'), findsOneWidget);
+  });
+
+  testWidgets('el inicio invita a abrir la caja cuando está cerrada', (
+    tester,
+  ) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      api: ApiFalsa(cajaAbierta: false),
+    );
+
+    expect(find.text('Caja cerrada'), findsOneWidget);
+    expect(find.text('Ventas del turno'), findsNothing);
+
+    await tester.tap(find.text('Abrir caja'));
+    await tester.pumpAndSettle();
+    expect(find.text('Apertura de Turno'), findsOneWidget);
   });
 }

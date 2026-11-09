@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../ajustes/ajustes.dart';
+import '../../alertas/pantallas/pantalla_alertas.dart';
 import '../../catalogo/pantallas/pantalla_catalogo.dart';
 import '../../envases/pantallas/dashboard_envases.dart';
 import '../../pdv/pantallas/punto_venta.dart';
@@ -75,13 +76,7 @@ final seccionesCaja = <SeccionCaja>[
     'Alertas',
     Icons.notifications_active_outlined,
     Icons.notifications_active_rounded,
-    () => const Proximamente(
-      icono: Icons.notifications_active_outlined,
-      titulo: 'Alertas',
-      descripcion: 'Productos bajo su mínimo y próximos a caducar. Mientras tanto, el Inicio ya los muestra.',
-      sprint: 4,
-      responsable: 'Luis',
-    ),
+    PantallaAlertas.new,
   ),
   SeccionCaja(
     'resurtido',

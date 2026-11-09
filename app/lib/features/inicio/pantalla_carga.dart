@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/tema/colores.dart';
+import '../../core/textos.dart';
 import '../../core/widgets/cargador_nexo.dart';
 import '../../core/widgets/marca.dart';
 
@@ -8,7 +9,7 @@ import '../../core/widgets/marca.dart';
 class PantallaCarga extends StatelessWidget {
   const PantallaCarga({
     super.key,
-    this.mensaje = 'Preparando tu espacio de trabajo',
+    this.mensaje = Textos.preparandoEspacio,
     this.version = 'v 1.0.0',
   });
 

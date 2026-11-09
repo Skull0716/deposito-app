@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../app/tema/colores.dart';
+import '../textos.dart';
 
 class CampoPin extends StatelessWidget {
   const CampoPin({
@@ -18,18 +19,22 @@ class CampoPin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ShakeWidget(
-      shaking: conError,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(longitud, (index) {
-          final lleno = index < valor.length;
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: _CirculoPin(lleno: lleno, conError: conError),
-          );
-        }),
+    return Semantics(
+      label: '${Textos.pin}: ${valor.length} de $longitud',
+      excludeSemantics: true,
+      child: _ShakeWidget(
+        shaking: conError,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(longitud, (index) {
+            final lleno = index < valor.length;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: _CirculoPin(lleno: lleno, conError: conError),
+            );
+          }),
+        ),
       ),
     );
   }

@@ -4,15 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/tema/colores.dart';
 import '../../../core/formato/formato.dart';
+import '../../../core/textos.dart';
 import '../../../core/widgets/estados.dart';
 import '../../../core/widgets/ilustracion_producto.dart';
 import '../../catalogo/estado/productos.dart';
+import '../estado/pedido_borrador.dart';
 import 'escaner.dart';
 
 /// Escanear un producto para ver precio y existencia al momento.
 ///
-/// Busca en el catálogo que ya está en memoria (se mantiene al día por
-/// WebSocket). `GET /productos/codigo/{codigo}` llega en el Sprint 2.
+/// Busca en el catálogo que ya está en memoria y se mantiene al día por
+/// WebSocket; así responde aunque la red parpadee.
 class PantallaEscanear extends ConsumerStatefulWidget {
   const PantallaEscanear({super.key});
 
@@ -98,7 +100,7 @@ class _PantallaEscanearState extends ConsumerState<PantallaEscanear> {
             FilledButton(
               onPressed: () => _buscar(_codigo.text),
               style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
-              child: const Text('Buscar'),
+              child: const Text(Textos.buscar),
             ),
           ],
         ),
@@ -132,13 +134,13 @@ class _PantallaEscanearState extends ConsumerState<PantallaEscanear> {
   }
 }
 
-class _Resultado extends StatelessWidget {
+class _Resultado extends ConsumerWidget {
   const _Resultado({required this.producto});
 
   final Producto producto;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.colores;
     final textos = Theme.of(context).textTheme;
     final p = producto;
@@ -214,8 +216,39 @@ class _Resultado extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 14),
+          FilledButton.icon(
+            onPressed: () => _agregar(context, ref, porCaja: false),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Agregar 1 pieza'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+            ),
+          ),
+          if (p.piezasPorCaja != null) ...[
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: () => _agregar(context, ref, porCaja: true),
+              icon: const Icon(Icons.inventory_2_outlined),
+              label: Text('Agregar 1 caja de ${p.piezasPorCaja}'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  void _agregar(BuildContext context, WidgetRef ref, {required bool porCaja}) {
+    ref
+        .read(pedidoBorradorProvider.notifier)
+        .agregar(producto, porCaja: porCaja);
+    avisar(
+      context,
+      '${producto.nombre} se agregó al pedido. '
+      'Revisa la pestaña Pedido.',
     );
   }
 }

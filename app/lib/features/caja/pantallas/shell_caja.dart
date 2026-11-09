@@ -1,20 +1,21 @@
-import '../../personal/estado/personal_provider.dart';
-import '../../auth/pantallas/login_diario.dart';
-import '../../../core/api/fallo_api.dart';
-
 import 'package:deposito_backend/deposito_backend.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/tema/colores.dart';
+import '../../../core/api/fallo_api.dart';
 import '../../../core/config/configuracion.dart';
 import '../../../core/formato/formato.dart';
 import '../../../core/servidor/servidor_embebido.dart';
+import '../../../core/textos.dart';
 import '../../../core/widgets/estados.dart';
 import '../../../core/widgets/indicador_conexion.dart';
 import '../../../core/widgets/marca.dart';
-import '../../catalogo/estado/productos.dart';
+import '../../alertas/estado/alertas_provider.dart';
+import '../../auth/pantallas/login_diario.dart';
+import '../../pedidos/estado/pedidos_provider.dart';
+import '../../personal/estado/personal_provider.dart';
 import 'conectar_terminal.dart';
 import 'secciones_caja.dart';
 
@@ -63,7 +64,7 @@ class ShellCaja extends ConsumerWidget {
               FilledButton.icon(
                 onPressed: () => ref.invalidate(servidorEmbebidoProvider),
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Reintentar'),
+                label: const Text(Textos.reintentar),
               ),
             ],
           ),
@@ -108,14 +109,15 @@ class _Arrancando extends StatelessWidget {
   }
 }
 
-class _Marco extends StatelessWidget {
+class _Marco extends ConsumerWidget {
   const _Marco({required this.seccion, required this.child});
 
   final String seccion;
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pedidos = ref.watch(pedidosPendientesProvider).value?.length ?? 0;
     return LayoutBuilder(
       builder: (context, medidas) {
         final ancho = medidas.maxWidth;
@@ -184,8 +186,14 @@ class _Marco extends StatelessWidget {
               destinations: [
                 for (final item in itemsNav)
                   NavigationDestination(
-                    icon: Icon(item.icono),
-                    selectedIcon: Icon(item.activo),
+                    icon: _IconoNav(
+                      icono: item.icono,
+                      insignia: item.ruta == 'vender' ? pedidos : 0,
+                    ),
+                    selectedIcon: _IconoNav(
+                      icono: item.activo,
+                      insignia: item.ruta == 'vender' ? pedidos : 0,
+                    ),
                     label: item.label,
                   ),
               ],
@@ -232,15 +240,8 @@ class _MenuLateral extends ConsumerWidget {
     final c = context.colores;
     final textos = Theme.of(context).textTheme;
     final ip = ref.watch(direccionLocalProvider).value;
-    final productos = ref.watch(productosProvider).value ?? const <Producto>[];
-    final hoy = DateTime.now();
-    final alertas = productos
-        .where(
-          (p) =>
-              p.bajoMinimo ||
-              (p.caducidad != null && diasHasta(p.caducidad!, hoy) <= 15),
-        )
-        .length;
+    final alertas = ref.watch(alertasProvider).value?.alertas.length ?? 0;
+    final pedidos = ref.watch(pedidosPendientesProvider).value?.length ?? 0;
 
     return Container(
       width: compacto ? 92 : 240,
@@ -311,6 +312,8 @@ class _MenuLateral extends ConsumerWidget {
                         compacto: compacto,
                         insignia: s.ruta == 'alertas' && alertas > 0
                             ? alertas
+                            : s.ruta == 'vender' && pedidos > 0
+                            ? pedidos
                             : null,
                         alTocar: () {
                           alNavegar?.call();
@@ -475,6 +478,23 @@ class _ElementoMenu extends StatelessWidget {
       ),
     );
   }
+}
+
+class _IconoNav extends StatelessWidget {
+  const _IconoNav({required this.icono, required this.insignia});
+
+  final IconData icono;
+
+  /// Pedidos pendientes que se muestran sobre el ícono. 0 lo oculta.
+  final int insignia;
+
+  @override
+  Widget build(BuildContext context) => Badge(
+    isLabelVisible: insignia > 0,
+    backgroundColor: context.colores.alerta,
+    label: Text('$insignia'),
+    child: Icon(icono),
+  );
 }
 
 class _BarraSuperior extends ConsumerWidget {

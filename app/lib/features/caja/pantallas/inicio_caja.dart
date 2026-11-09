@@ -10,11 +10,13 @@ import '../../../core/widgets/estados.dart';
 import '../../../core/widgets/ilustracion_producto.dart';
 import '../../catalogo/estado/productos.dart';
 import '../../catalogo/pantallas/detalle_producto.dart';
+import '../../pedidos/pantallas/pedidos_pendientes.dart';
 import '../estado/terminales.dart';
+import '../estado/turno_provider.dart';
 import 'conectar_terminal.dart';
 
 /// Tablero de la caja. Las cifras de ventas llegan en el Sprint 4; por ahora
-/// muestra lo que ya existe: catálogo, alertas calculadas y terminales.
+/// muestra catálogo, alertas, pedidos de terminal y terminales conectadas.
 class InicioCaja extends ConsumerWidget {
   const InicioCaja({super.key});
 
@@ -108,6 +110,9 @@ class _Tablero extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 20),
+            PedidosPendientes(productos: productos),
+            const _BarraTurno(),
+            const SizedBox(height: 20),
             _PanelMetricas(
               productos: productos.length,
               piezas: piezas,
@@ -157,7 +162,7 @@ class _Tablero extends ConsumerWidget {
                     accion: TextButton.icon(
                       onPressed: () => mostrarConectarTerminal(context),
                       icon: const Icon(Icons.add_rounded, size: 20),
-                      label: const Text('Conectar'),
+                      label: const Text('Vincular'),
                     ),
                     child: terminales.isEmpty
                         ? Padding(
@@ -225,6 +230,160 @@ class _Tablero extends ConsumerWidget {
     1 => 'Una terminal conectada.',
     _ => '$n terminales conectadas.',
   };
+}
+
+class _BarraTurno extends ConsumerWidget {
+  const _BarraTurno();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colores;
+    final estado = ref.watch(turnoProvider);
+
+    return switch (estado) {
+      AsyncData(:final value) => _Contenido(turno: value.turno),
+      AsyncError() => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        decoration: BoxDecoration(
+          color: c.superficie,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: c.linea),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.cloud_off_rounded, size: 20, color: c.tinta2),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'No se pudo leer el estado de la caja.',
+                style: TextStyle(color: c.tinta2),
+              ),
+            ),
+            TextButton(
+              onPressed: () => ref.read(turnoProvider.notifier).refrescar(),
+              child: const Text('Reintentar'),
+            ),
+          ],
+        ),
+      ),
+      _ => const SizedBox(height: 76),
+    };
+  }
+}
+
+class _Contenido extends StatelessWidget {
+  const _Contenido({required this.turno});
+
+  final Turno? turno;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colores;
+    final textos = Theme.of(context).textTheme;
+    final t = turno;
+    final abierto = t != null;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
+      decoration: BoxDecoration(
+        color: c.superficie,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.linea),
+        boxShadow: c.sombra,
+      ),
+      child: Wrap(
+        spacing: 18,
+        runSpacing: 12,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 9,
+                height: 9,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: abierto ? c.verde : c.tinta2,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      abierto ? 'Caja abierta' : 'Caja cerrada',
+                      style: textos.titleSmall,
+                    ),
+                    Text(
+                      abierto
+                          ? 'Desde las ${hora(t.apertura)} · fondo '
+                                '${dinero(t.fondo)}'
+                          : 'Ábrela en Corte de caja para empezar a vender.',
+                      style: textos.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (abierto) ...[
+            _CifraTurno(
+              etiqueta: 'Ventas del turno',
+              valor: dinero(t.resumen.ventasEfectivo + t.resumen.ventasTarjeta),
+              detalle: t.resumen.ventas == 1
+                  ? '1 venta'
+                  : '${t.resumen.ventas} ventas',
+            ),
+            _CifraTurno(
+              etiqueta: 'Efectivo esperado',
+              valor: dinero(t.resumen.esperado),
+              detalle: 'en la caja',
+            ),
+          ],
+          OutlinedButton.icon(
+            onPressed: () => context.go('/caja/corte'),
+            icon: Icon(
+              abierto
+                  ? Icons.account_balance_wallet_outlined
+                  : Icons.play_circle_outline_rounded,
+            ),
+            label: Text(abierto ? 'Corte de caja' : 'Abrir caja'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CifraTurno extends StatelessWidget {
+  const _CifraTurno({
+    required this.etiqueta,
+    required this.valor,
+    required this.detalle,
+  });
+
+  final String etiqueta;
+  final String valor;
+  final String detalle;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colores;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(etiqueta, style: TextStyle(fontSize: 12, color: c.tinta2)),
+        Text(
+          valor,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
+        Text(detalle, style: TextStyle(fontSize: 12, color: c.tinta2)),
+      ],
+    );
+  }
 }
 
 class _PanelMetricas extends StatelessWidget {
@@ -509,11 +668,12 @@ class _FilaAtencion extends StatelessWidget {
     final dias = p.caducidad == null ? null : diasHasta(p.caducidad!, hoy);
     final (motivo, color, fondo) = p.bajoMinimo
         ? ('Bajo el mínimo', c.alerta, c.alertaSuave)
-        : (
-            'Caduca ${dias! <= 0 ? 'hoy' : 'en $dias días'}',
-            c.azul,
-            c.superficie3,
-          );
+        : switch (dias!) {
+            < 0 => ('Vencido', c.alerta, c.alertaSuave),
+            0 => ('Caduca hoy', c.alerta, c.alertaSuave),
+            1 => ('Caduca mañana', c.azul, c.superficie3),
+            _ => ('Caduca en $dias días', c.azul, c.superficie3),
+          };
     return InkWell(
       onTap: () => mostrarDetalleProducto(context, p),
       borderRadius: BorderRadius.circular(10),

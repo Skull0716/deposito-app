@@ -6,5 +6,5 @@ final _aleatorio = Random.secure();
 /// y se reutiliza si se reintenta, para que el servidor no la repita.
 String nuevaClaveIdempotencia() => [
   for (var i = 0; i < 4; i++)
-    _aleatorio.nextInt(1 << 32).toRadixString(36).padLeft(7, '0'),
+    _aleatorio.nextInt(0x7fffffff).toRadixString(36).padLeft(7, '0'),
 ].join('-');

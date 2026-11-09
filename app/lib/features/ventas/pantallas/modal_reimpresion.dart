@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/tema/colores.dart';
 import '../../../core/formato/formato.dart';
+import '../../../core/textos.dart';
 import '../../../core/ticket/ticket_pdf.dart';
 import '../../../core/widgets/estados.dart';
 
@@ -160,7 +161,7 @@ class ModalReimpresion extends ConsumerWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Cerrar',
+                  tooltip: Textos.cerrar,
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close_rounded),
                 ),
@@ -186,7 +187,7 @@ class ModalReimpresion extends ConsumerWidget {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Cerrar',
+                Textos.cerrar,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,

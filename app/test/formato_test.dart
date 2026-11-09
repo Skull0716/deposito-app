@@ -52,4 +52,26 @@ void main() {
     expect(diasHasta('2026-10-03', hoy), 1);
     expect(diasHasta('2026-09-30', hoy), -2);
   });
+
+  group('tamanoLegible', () {
+    test('bytes', () => expect(tamanoLegible(512), '512 B'));
+    test('kilobytes con un decimal', () {
+      expect(tamanoLegible(1024), '1.0 KB');
+    });
+    test('kilobytes sin decimales', () {
+      expect(tamanoLegible(500 * 1024), '500 KB');
+    });
+    test('megabytes con un decimal', () {
+      expect(tamanoLegible(1843200), '1.8 MB');
+    });
+    test('megabytes grandes sin decimales', () {
+      expect(tamanoLegible(10 * 1024 * 1024), '10 MB');
+    });
+  });
+
+  group('pesosEditables', () {
+    test('sin centavos', () => expect(pesosEditables(4200), '42'));
+    test('con centavos', () => expect(pesosEditables(4250), '42.50'));
+    test('centavos de un dígito', () => expect(pesosEditables(4205), '42.05'));
+  });
 }

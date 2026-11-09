@@ -1,29 +1,57 @@
 import 'package:deposito_backend/deposito_backend.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/tema/colores.dart';
 import '../../../core/formato/formato.dart';
 import '../../../core/widgets/ilustracion_producto.dart';
+import '../estado/productos.dart';
 
-Future<void> mostrarDetalleProducto(BuildContext context, Producto p) =>
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      constraints: const BoxConstraints(maxWidth: 560),
-      builder: (_) => DetalleProducto(producto: p),
-    );
+Future<void> mostrarDetalleProducto(
+  BuildContext context,
+  Producto p, {
+  List<Widget> acciones = const [],
+  Widget? accionesCaja,
+}) => showModalBottomSheet<void>(
+  context: context,
+  isScrollControlled: true,
+  constraints: const BoxConstraints(maxWidth: 560),
+  builder: (_) => DetalleProducto(
+    producto: p,
+    acciones: acciones,
+    accionesCaja: accionesCaja,
+  ),
+);
 
 /// Ficha del producto: precio, existencia y datos del catálogo.
-class DetalleProducto extends StatelessWidget {
-  const DetalleProducto({super.key, required this.producto});
+class DetalleProducto extends ConsumerWidget {
+  const DetalleProducto({
+    super.key,
+    required this.producto,
+    this.acciones = const [],
+    this.accionesCaja,
+  });
 
   final Producto producto;
 
+  /// Botones al final de la ficha (por ejemplo, agregar al pedido).
+  final List<Widget> acciones;
+
+  /// Botones de la caja (recibir, editar, ajustar, movimientos, eliminar).
+  final Widget? accionesCaja;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.colores;
     final textos = Theme.of(context).textTheme;
-    final p = producto;
+    // Si el catálogo se refrescó (por una entrada o un ajuste), la ficha
+    // muestra la existencia nueva sin cerrarse.
+    final p =
+        ref
+            .watch(productosProvider)
+            .value
+            ?.firstWhere((x) => x.id == producto.id, orElse: () => producto) ??
+        producto;
     final hoy = DateTime.now();
     final diasCaducidad = p.caducidad == null
         ? null
@@ -32,89 +60,101 @@ class DetalleProducto extends StatelessWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                SizedBox(
-                  width: 104,
-                  height: 120,
-                  child: IlustracionProducto(producto: p),
-                ),
-                const SizedBox(width: 18),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        capitalizar(p.categoria).toUpperCase(),
-                        style: textos.labelSmall?.copyWith(letterSpacing: 1.2),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(p.nombre, style: textos.headlineMedium),
-                      if (p.presentacion != null)
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  SizedBox(
+                    width: 104,
+                    height: 120,
+                    child: IlustracionProducto(producto: p),
+                  ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          p.presentacion!,
-                          style: textos.bodyMedium?.copyWith(color: c.tinta2),
+                          capitalizar(p.categoria).toUpperCase(),
+                          style: textos.labelSmall?.copyWith(
+                            letterSpacing: 1.2,
+                          ),
                         ),
-                    ],
+                        const SizedBox(height: 2),
+                        Text(p.nombre, style: textos.headlineMedium),
+                        if (p.presentacion != null)
+                          Text(
+                            p.presentacion!,
+                            style: textos.bodyMedium?.copyWith(color: c.tinta2),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: _Cifra(
-                    etiqueta: 'Pieza',
-                    valor: dinero(p.precio),
-                    resaltada: true,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _Cifra(
-                    etiqueta: p.piezasPorCaja == null
-                        ? 'Caja'
-                        : 'Caja de ${p.piezasPorCaja}',
-                    valor: p.precioCaja == null ? '—' : dinero(p.precioCaja!),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _Cifra(
-              etiqueta: 'Existencia',
-              valor: existenciaLegible(p),
-              detalle: p.bajoMinimo
-                  ? 'Bajo el mínimo de ${p.minimo} pz'
-                  : 'Mínimo ${p.minimo} pz',
-              alerta: p.bajoMinimo,
-            ),
-            const SizedBox(height: 16),
-            _Dato(
-              icono: Icons.qr_code_2_rounded,
-              etiqueta: 'Código',
-              valor: p.codigo,
-            ),
-            if (p.envase != null)
-              _Dato(
-                icono: Icons.recycling_rounded,
-                etiqueta: 'Envase retornable',
-                valor: capitalizar(p.envase!),
+                ],
               ),
-            if (p.caducidad != null)
-              _Dato(
-                icono: Icons.event_rounded,
-                etiqueta: 'Caducidad',
-                valor:
-                    '${fechaCorta(p.caducidad!)} · ${_textoDias(diasCaducidad!)}',
-                alerta: diasCaducidad <= 15,
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: _Cifra(
+                      etiqueta: 'Pieza',
+                      valor: dinero(p.precio),
+                      resaltada: true,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _Cifra(
+                      etiqueta: p.piezasPorCaja == null
+                          ? 'Caja'
+                          : 'Caja de ${p.piezasPorCaja}',
+                      valor: p.precioCaja == null ? '—' : dinero(p.precioCaja!),
+                    ),
+                  ),
+                ],
               ),
-          ],
+              const SizedBox(height: 12),
+              _Cifra(
+                etiqueta: 'Existencia',
+                valor: existenciaLegible(p),
+                detalle: p.bajoMinimo
+                    ? 'Bajo el mínimo de ${p.minimo} pz'
+                    : 'Mínimo ${p.minimo} pz',
+                alerta: p.bajoMinimo,
+              ),
+              const SizedBox(height: 16),
+              _Dato(
+                icono: Icons.qr_code_2_rounded,
+                etiqueta: 'Código',
+                valor: p.codigo,
+              ),
+              if (p.envase != null)
+                _Dato(
+                  icono: Icons.recycling_rounded,
+                  etiqueta: 'Envase retornable',
+                  valor: capitalizar(p.envase!),
+                ),
+              if (p.caducidad != null)
+                _Dato(
+                  icono: Icons.event_rounded,
+                  etiqueta: 'Caducidad',
+                  valor:
+                      '${fechaCorta(p.caducidad!)} · ${_textoDias(diasCaducidad!)}',
+                  alerta: diasCaducidad <= 15,
+                ),
+              if (acciones.isNotEmpty) ...[
+                const SizedBox(height: 18),
+                ...acciones,
+              ],
+              if (accionesCaja case final acciones?) ...[
+                const SizedBox(height: 18),
+                acciones,
+              ],
+            ],
+          ),
         ),
       ),
     );

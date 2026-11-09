@@ -10,6 +10,7 @@ import '../../../app/tema/colores.dart';
 import '../../../core/api/fallo_api.dart';
 import '../../../core/api/proveedores.dart';
 import '../../../core/servidor/servidor_embebido.dart';
+import '../../../core/textos.dart';
 import '../../../core/widgets/estados.dart';
 import '../estado/terminales.dart';
 
@@ -130,14 +131,14 @@ class _ConectarTerminalState extends ConsumerState<ConectarTerminal> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Conectar una terminal',
+                      'Vincular una terminal',
                       style: textos.headlineMedium,
                     ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close_rounded),
-                    tooltip: 'Cerrar',
+                    tooltip: Textos.cerrar,
                   ),
                 ],
               ),

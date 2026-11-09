@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/tema/colores.dart';
 import '../../../../core/formato/formato.dart';
+import '../../../core/textos.dart';
 
 /// 2.3 Corte de caja (diseño de Pablo): lo vendido y el efectivo esperado
 /// del turno abierto, antes del conteo físico.
@@ -27,7 +28,7 @@ class CorteCaja extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
           label: const Text(
-            'Volver',
+            Textos.volver,
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
           style: TextButton.styleFrom(

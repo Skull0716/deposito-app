@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/tema/colores.dart';
 import '../../../core/formato/formato.dart';
+import '../../../core/textos.dart';
 import '../../../core/widgets/estados.dart';
 import '../datos/modelos_envases.dart';
 import '../estado/envases_provider.dart';
@@ -49,7 +50,7 @@ class _HistorialPrestamosState extends ConsumerState<HistorialPrestamos> {
           ),
         ),
         leading: IconButton(
-          tooltip: 'Volver',
+          tooltip: Textos.volver,
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
@@ -377,7 +378,7 @@ class _BotonRecibir extends StatelessWidget {
       ),
       icon: Icon(Icons.download_rounded, size: compacto ? 16 : 18),
       label: const Text(
-        'Recibir',
+        Textos.recibir,
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
     );

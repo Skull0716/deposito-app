@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../../core/textos.dart';
+
 /// Resultado de un código leído: qué decirle a quien escanea.
 typedef ResultadoEscaneo = ({bool agregado, String mensaje});
 
@@ -129,7 +131,7 @@ class _EscanerContinuoState extends State<EscanerContinuo> {
                         icon: const Icon(Icons.close_rounded),
                         label: Text(
                           _agregados == 0
-                              ? 'Cerrar'
+                              ? Textos.cerrar
                               : 'Listo ($_agregados agregados)',
                         ),
                       ),

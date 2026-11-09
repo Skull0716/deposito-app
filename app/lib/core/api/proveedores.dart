@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/configuracion.dart';
 import '../servidor/servidor_embebido.dart';
+import '../textos.dart';
 import 'api.dart';
 import 'api_falsa.dart';
 import 'fallo_api.dart';
@@ -28,10 +29,7 @@ final apiProvider = FutureProvider<Api>((ref) async {
     case ModoDispositivo.terminal:
       final c = config.conexion;
       if (c == null) {
-        throw const FalloApi(
-          'sin_conexion',
-          'Esta terminal no está vinculada a una caja.',
-        );
+        throw const FalloApi('sin_conexion', Textos.terminalNoVinculada);
       }
       return ApiHttp(
         base: Uri(scheme: 'http', host: c.host, port: c.puerto),

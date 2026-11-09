@@ -6,10 +6,12 @@ import '../core/config/configuracion.dart';
 import '../features/ajustes/ajustes.dart';
 import '../features/caja/pantallas/secciones_caja.dart';
 import '../features/caja/pantallas/shell_caja.dart';
+import '../features/catalogo/pantallas/detalle_producto.dart';
 import '../features/catalogo/pantallas/vista_catalogo.dart';
 import '../features/inicio/elegir_modo.dart';
-import '../features/proximamente/proximamente.dart';
+import '../features/terminal/pantallas/acciones_pedido.dart';
 import '../features/terminal/pantallas/escanear.dart';
+import '../features/terminal/pantallas/pantalla_pedido.dart';
 import '../features/terminal/pantallas/shell_terminal.dart';
 import '../features/terminal/pantallas/vincular_terminal.dart';
 
@@ -95,17 +97,15 @@ String? _redirigir(Configuracion config, String ruta) {
 }
 
 Widget _pestanaTerminal(String seccion) => switch (seccion) {
-  'productos' => const VistaCatalogo(
-    relleno: EdgeInsets.fromLTRB(16, 16, 16, 0),
+  'productos' => VistaCatalogo(
+    relleno: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+    alTocarProducto: (context, producto) => mostrarDetalleProducto(
+      context,
+      producto,
+      acciones: [AccionesPedido(producto: producto)],
+    ),
   ),
-  'pedido' => const Proximamente(
-    icono: Icons.receipt_outlined,
-    titulo: 'Pedido',
-    descripcion:
-        'Arma el pedido del cliente aquí y mándalo a la caja para cobrarlo.',
-    sprint: 3,
-    responsable: 'Luis',
-  ),
+  'pedido' => const PantallaPedido(),
   'ajustes' => const PantallaAjustes(),
   _ => const PantallaEscanear(),
 };

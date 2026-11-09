@@ -108,6 +108,51 @@ void main() {
     expect(find.text('Luis Pérez'), findsOneWidget);
   });
 
+  testWidgets('la pantalla de respaldo explica qué guarda', (tester) async {
+    final api = await conPersonal();
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      api: api,
+      tamano: const Size(1366, 1200),
+    );
+    await entrarComo(tester, 'Don Beto', '999999');
+
+    await tester.tap(find.text('Ajustes').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Seguridad y respaldo'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Seguridad y Respaldo'), findsOneWidget);
+    expect(find.textContaining('copia completa'), findsOneWidget);
+    expect(find.text('Generar respaldo manual'), findsOneWidget);
+    expect(find.textContaining('cifrada'), findsNothing);
+  });
+
+  testWidgets('el diagnóstico muestra el estado del servidor', (tester) async {
+    final api = ApiFalsa();
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      api: api,
+      tamano: const Size(1366, 1400),
+    );
+    await tester.tap(find.text('Ajustes').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Diagnóstico del servidor'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Diagnóstico'), findsOneWidget);
+    expect(find.text('1.8 MB'), findsOneWidget);
+    expect(find.text('Conexiones'), findsOneWidget);
+    expect(find.text('Sin errores'), findsOneWidget);
+    expect(
+      find.text('Nada ha fallado desde que arrancó el servidor.'),
+      findsOneWidget,
+    );
+    expect(find.text('Descargar bitácora'), findsOneWidget);
+  });
+
   testWidgets('los datos del negocio se guardan para el ticket', (
     tester,
   ) async {

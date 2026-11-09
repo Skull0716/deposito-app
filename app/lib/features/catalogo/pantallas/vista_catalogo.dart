@@ -15,11 +15,16 @@ class VistaCatalogo extends ConsumerStatefulWidget {
   const VistaCatalogo({
     super.key,
     this.acciones = const [],
+    this.alTocarProducto,
     this.relleno = const EdgeInsets.fromLTRB(24, 20, 24, 0),
   });
 
   /// Botones a la derecha de la búsqueda (por ejemplo, "Nuevo producto").
   final List<Widget> acciones;
+
+  /// Qué hacer al tocar un producto. Sin esto abre la ficha de solo lectura
+  /// (la terminal la usa para agregar al pedido).
+  final void Function(BuildContext context, Producto producto)? alTocarProducto;
   final EdgeInsets relleno;
 
   @override
@@ -89,6 +94,7 @@ class _VistaCatalogoState extends ConsumerState<VistaCatalogo> {
                   categoria: _categoria,
                 ),
                 hayCatalogo: value.isNotEmpty,
+                alTocarProducto: widget.alTocarProducto,
               ),
               AsyncError(:final error) => EstadoError(
                 error: error,
@@ -147,10 +153,15 @@ class _Categorias extends StatelessWidget {
 }
 
 class _Cuadricula extends ConsumerWidget {
-  const _Cuadricula({required this.productos, required this.hayCatalogo});
+  const _Cuadricula({
+    required this.productos,
+    required this.hayCatalogo,
+    required this.alTocarProducto,
+  });
 
   final List<Producto> productos;
   final bool hayCatalogo;
+  final void Function(BuildContext context, Producto producto)? alTocarProducto;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -181,7 +192,9 @@ class _Cuadricula extends ConsumerWidget {
         itemBuilder: (context, i) => TarjetaProducto(
           key: ValueKey(productos[i].id),
           producto: productos[i],
-          alTocar: () => mostrarDetalleProducto(context, productos[i]),
+          alTocar: () => alTocarProducto == null
+              ? mostrarDetalleProducto(context, productos[i])
+              : alTocarProducto!(context, productos[i]),
         ),
       ),
     );

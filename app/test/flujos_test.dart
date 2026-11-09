@@ -11,7 +11,7 @@ void main() {
       await montarApp(tester, tamano: const Size(412, 915));
       expect(find.text('Configura tu punto de venta'), findsOneWidget);
 
-      await tester.tap(find.text('Conectar Celular como Terminal'));
+      await tester.tap(find.text('Vincular Celular como Terminal'));
       await tester.pumpAndSettle();
 
       expect(find.text('Vincula esta terminal'), findsOneWidget);
@@ -256,7 +256,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).last, '10');
       await tester.pumpAndSettle();
-      expect(find.text(r'$35 → $31.50 c/u'), findsOneWidget);
+      expect(find.text(r'$35 a $31.50 c/u'), findsOneWidget);
       Navigator.of(tester.element(find.text('Eliminar producto'))).pop();
       await tester.pumpAndSettle();
       expect(find.text(r'$31.50 x 1 (−10%)'), findsOneWidget);

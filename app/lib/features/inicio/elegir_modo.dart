@@ -1,10 +1,10 @@
-import '../personal/estado/personal_provider.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/tema/colores.dart';
 import '../../core/config/configuracion.dart';
+import '../../core/textos.dart';
+import '../personal/estado/personal_provider.dart';
 import 'pantallas/crear_cuenta_maestra.dart';
 import 'pantallas/inicializando_bd.dart';
 import 'pantallas/restaurar_respaldo.dart';
@@ -59,7 +59,7 @@ class ElegirModo extends ConsumerWidget {
                     children: [
                       const SizedBox(height: 48),
                       Text(
-                        'Configura tu punto de venta',
+                        Textos.configurarPuntoDeVenta,
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
@@ -70,7 +70,7 @@ class ElegirModo extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Elige qué deseas hacer en este dispositivo.',
+                        Textos.eligeQueDeseasHacer,
                         style: TextStyle(
                           fontSize: 16,
                           color: c.tinta2,
@@ -79,7 +79,7 @@ class ElegirModo extends ConsumerWidget {
                       ),
                       const SizedBox(height: 40),
                       Text(
-                        'Selecciona una opción',
+                        Textos.seleccionaUnaOpcion,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -91,8 +91,8 @@ class ElegirModo extends ConsumerWidget {
                       // Opciones
                       _OpcionConfiguracion(
                         icono: Icons.dns_outlined,
-                        titulo: 'Crear Nuevo Servidor POS',
-                        descripcion: 'Configura este dispositivo como la caja principal.',
+                        titulo: Textos.crearServidorPos,
+                        descripcion: Textos.descripcionCrearServidor,
                         alPresionar: () {
                           Navigator.push(
                             context,
@@ -128,18 +128,16 @@ class ElegirModo extends ConsumerWidget {
                       const SizedBox(height: 16),
                       _OpcionConfiguracion(
                         icono: Icons.smartphone_outlined,
-                        titulo: 'Conectar Celular como Terminal',
-                        descripcion:
-                            'Vincula este equipo a un Servidor Host existente.',
+                        titulo: Textos.vincularCelular,
+                        descripcion: Textos.descripcionVincularCelular,
                         alPresionar: () =>
                             notificador.elegirModo(ModoDispositivo.terminal),
                       ),
                       const SizedBox(height: 16),
                       _OpcionConfiguracion(
                         icono: Icons.restore_outlined,
-                        titulo: 'Restaurar Servidor desde Respaldo',
-                        descripcion:
-                            'Recupera inventario, personal y cortes de caja.',
+                        titulo: Textos.restaurarServidor,
+                        descripcion: Textos.descripcionRestaurarServidor,
                         alPresionar: () {
                           Navigator.push(
                             context,
@@ -155,7 +153,7 @@ class ElegirModo extends ConsumerWidget {
                       // Footer
                       Center(
                         child: Text(
-                          'Desarrollado por Equipo Umizommi',
+                          Textos.desarrolladoPor,
                           style: TextStyle(
                             fontSize: 12,
                             color: c.tinta2,

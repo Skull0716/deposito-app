@@ -61,22 +61,19 @@ class TarjetaProducto extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 6),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+                // Inline como en el diseño: si el precio es largo o el texto
+                // está muy grande, "caja $…" baja a otro renglón en vez de
+                // desbordar la tarjeta.
+                Wrap(
+                  spacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(dinero(p.precio), style: textos.headlineSmall),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        p.precioCaja == null
-                            ? 'pieza'
-                            : 'caja ${dinero(p.precioCaja!)}',
-                        style: textos.bodySmall,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.right,
-                      ),
+                    Text(
+                      p.precioCaja == null
+                          ? 'pieza'
+                          : 'caja ${dinero(p.precioCaja!)}',
+                      style: textos.bodySmall,
                     ),
                   ],
                 ),

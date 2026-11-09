@@ -4,6 +4,7 @@ import 'package:deposito_backend/deposito_backend.dart';
 
 import 'api.dart';
 import 'fallo_api.dart';
+import 'pedido.dart';
 
 /// Datos de prueba con la forma exacta del contrato. Sirve para pruebas de
 /// widgets y para programar pantallas antes de que exista su endpoint.
@@ -13,11 +14,13 @@ class ApiFalsa implements Api {
     List<Terminal>? terminales,
     Map<String, BalanceEnvase>? envases,
     List<PrestamoEnvase>? prestamos,
+    List<Pedido>? pedidos,
     bool cajaAbierta = true,
   }) : productos = productos ?? productosDePrueba(),
        terminales = terminales ?? [],
        envases = envases ?? balanceDePrueba(prestamos: prestamos ?? []),
-       prestamos = prestamos ?? [] {
+       prestamos = prestamos ?? [],
+       pedidos = pedidos ?? [] {
     // Como el servidor con datos de ejemplo: se puede cobrar desde el inicio.
     if (cajaAbierta) _abrir(fondoDePrueba);
   }
@@ -26,6 +29,7 @@ class ApiFalsa implements Api {
   final List<Terminal> terminales;
   final Map<String, BalanceEnvase> envases;
   final List<PrestamoEnvase> prestamos;
+  final List<Pedido> pedidos;
 
   @override
   Uri get base => Uri.parse('http://127.0.0.1:8080');
@@ -1263,8 +1267,10 @@ class ApiFalsa implements Api {
 
   // --- Alertas ---
 
-  /// Día de negocio contra el que se calculan las caducidades.
-  var hoy = '2026-10-02';
+  /// Día de negocio contra el que se calculan las caducidades. Por omisión es
+  /// hoy: la API falsa no tiene servidor que lo diga. Las pruebas lo fijan
+  /// para que las alertas no dependan del día en que se corran.
+  var hoy = _hoyLocal();
 
   @override
   Future<({String dia, int dias, List<Alerta> alertas})> listarAlertas({
@@ -1283,6 +1289,74 @@ class ApiFalsa implements Api {
       dias: ventana,
       alertas: calcularAlertas(productos, hoy: hoy, dias: ventana),
     );
+  }
+
+  // --- Pedidos ---
+
+  @override
+  Future<Pedido> crearPedido({
+    required List<LineaPedido> lineas,
+    String? nota,
+  }) async {
+    if (lineas.isEmpty) {
+      throw const FalloApi(
+        'datos_invalidos',
+        'Revisa los campos marcados',
+        campos: {'lineas': 'Debe contener productos'},
+        estado: 400,
+      );
+    }
+    for (final l in lineas) {
+      if (!productos.any((p) => p.id == l.productoId)) {
+        throw const FalloApi(
+          'datos_invalidos',
+          'Revisa los campos marcados',
+          campos: {'lineas': 'Hay un producto que no existe'},
+          estado: 400,
+        );
+      }
+      if (l.cantidad < 1) {
+        throw const FalloApi(
+          'datos_invalidos',
+          'Revisa los campos marcados',
+          campos: {'lineas': 'La cantidad debe ser mayor que 0'},
+          estado: 400,
+        );
+      }
+    }
+    if (nota != null && nota.length > 120) {
+      throw const FalloApi(
+        'datos_invalidos',
+        'Revisa los campos marcados',
+        campos: {'nota': 'Máximo 120 caracteres'},
+        estado: 400,
+      );
+    }
+    final pedido = Pedido(
+      id: 'ped_${pedidos.length + 1}',
+      origen: terminales.firstOrNull?.nombre ?? 'Terminal',
+      fecha: '2026-10-02T18:30:00Z',
+      nota: nota,
+      lineas: List.of(lineas),
+    );
+    pedidos.add(pedido);
+    return pedido;
+  }
+
+  @override
+  Future<List<Pedido>> listarPedidos() async => List.of(pedidos);
+
+  @override
+  Future<void> descartarPedido(String id) async {
+    final antes = pedidos.length;
+    pedidos.removeWhere((p) => p.id == id);
+    if (pedidos.length == antes) {
+      throw const FalloApi(
+        'no_encontrado',
+        'Ese pedido ya no está pendiente',
+        estado: 404,
+      );
+    }
   }
 
   // --- Ajustes y respaldo ---
@@ -1409,6 +1483,13 @@ Producto _p(
   creado: '2026-10-02T18:30:00Z',
   actualizado: '2026-10-02T18:30:00Z',
 );
+
+/// Hoy en formato `AAAA-MM-DD`, solo para los datos de la API falsa.
+String _hoyLocal() {
+  final ahora = DateTime.now();
+  return '${ahora.year}-${ahora.month.toString().padLeft(2, '0')}'
+      '-${ahora.day.toString().padLeft(2, '0')}';
+}
 
 List<Producto> productosDePrueba() {
   return [

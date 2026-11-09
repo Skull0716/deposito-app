@@ -5,9 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/tema/colores.dart';
 import '../../../core/api/fallo_api.dart';
 import '../../../core/formato/formato.dart';
+import '../../../core/textos.dart';
 import '../../../core/widgets/estados.dart';
-import '../../catalogo/estado/productos.dart';
 import '../../../core/widgets/ilustracion_producto.dart';
+import '../../catalogo/estado/productos.dart';
 import '../datos/modelos_ventas.dart';
 import '../estado/ventas_provider.dart';
 import 'modal_autorizacion_numpad.dart';
@@ -162,7 +163,7 @@ class _FlujoCancelacionState extends ConsumerState<FlujoCancelacion> {
           ],
         ),
         leading: IconButton(
-          tooltip: 'Cerrar',
+          tooltip: Textos.cerrar,
           icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),
         ),

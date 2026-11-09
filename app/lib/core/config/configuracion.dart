@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../textos.dart';
+
 enum ModoDispositivo { caja, terminal }
 
 /// Datos con los que una terminal habla con la caja. La [clave] la entrega
@@ -76,7 +78,7 @@ class ConfiguracionNotifier extends Notifier<Configuracion> {
               host: host,
               puerto: p.getInt(_puerto) ?? 8080,
               clave: clave,
-              nombre: p.getString(_nombre) ?? 'Terminal',
+              nombre: p.getString(_nombre) ?? Textos.nombreTerminalPorDefecto,
             ),
     );
   }

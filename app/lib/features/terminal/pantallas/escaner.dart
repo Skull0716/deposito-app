@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../app/tema/colores.dart';
+import '../../../core/textos.dart';
 
 /// Abre la cámara a pantalla completa y regresa el primer código leído
 /// (código de barras o QR), o `null` si se cierra.
@@ -92,7 +93,7 @@ class _PantallaEscanerState extends State<PantallaEscaner> {
                         ),
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.close_rounded),
-                        tooltip: 'Cerrar',
+                        tooltip: Textos.cerrar,
                       ),
                       const SizedBox(width: 12),
                       Expanded(

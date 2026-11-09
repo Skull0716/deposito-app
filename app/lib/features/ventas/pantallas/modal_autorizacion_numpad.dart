@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/tema/colores.dart';
 import '../../../core/api/fallo_api.dart';
 import '../../../core/api/proveedores.dart';
+import '../../../core/textos.dart';
 import '../../../core/widgets/teclado_numerico.dart';
 import '../datos/modelos_ventas.dart';
 
@@ -163,7 +164,7 @@ class _ModalAutorizacionNumpadState
                         color: Colors.white70,
                       ),
                       label: const Text(
-                        'Cancelar',
+                        Textos.cancelar,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,

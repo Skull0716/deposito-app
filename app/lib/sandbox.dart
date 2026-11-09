@@ -12,7 +12,6 @@ import 'features/inicio/pantallas/restaurar_respaldo.dart';
 import 'features/pdv/pantallas/punto_venta.dart';
 import 'features/personal/pantallas/gestion_personal.dart';
 import 'features/personal/pantallas/seguridad_respaldo.dart';
-import 'features/terminal/pantallas/vinculacion_terminal.dart';
 
 /// Vitrina de pantallas con datos de prueba, sin servidor:
 ///
@@ -58,7 +57,6 @@ class _Vitrina extends StatelessWidget {
     ('Personal', 'Sin endpoint todavía', GestionPersonal.new),
     ('Seguridad y respaldo', 'Sin endpoint todavía', SeguridadRespaldo.new),
     ('Restaurar respaldo', 'Sin endpoint todavía', RestaurarRespaldo.new),
-    ('Vinculación de terminal', 'Diseño nuevo', VinculacionTerminal.new),
   ];
 
   @override

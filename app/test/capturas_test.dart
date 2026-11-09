@@ -2,12 +2,18 @@
 // No corre en el CI: solo cuando se define CAPTURAS con la carpeta de salida.
 //
 //   CAPTURAS=/tmp/capturas flutter test test/capturas_test.dart
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show ImageByteFormat;
 
+import 'package:deposito_backend/deposito_backend.dart';
+import 'package:deposito_app/features/catalogo/pantallas/modal_importar_inventario.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:deposito_app/core/api/api_falsa.dart';
+import 'package:deposito_app/core/api/pedido.dart';
 
 import 'ayudantes.dart';
 
@@ -39,6 +45,29 @@ void main() {
   final omitir = _salida == null
       ? 'Define CAPTURAS para generar capturas'
       : null;
+
+  ApiFalsa cajaConPedido() => ApiFalsa(
+    pedidos: [
+      const Pedido(
+        id: 'ped_1',
+        origen: 'Terminal S24',
+        fecha: '2026-10-02T18:30:00Z',
+        nota: 'Mesa 3',
+        lineas: [
+          LineaPedido(
+            productoId: 'p_1',
+            unidad: UnidadPedido.pieza,
+            cantidad: 2,
+          ),
+          LineaPedido(
+            productoId: 'p_2',
+            unidad: UnidadPedido.caja,
+            cantidad: 1,
+          ),
+        ],
+      ),
+    ],
+  );
 
   testWidgets('bienvenida', skip: omitir != null, (tester) async {
     await montarApp(tester, tamano: ipad, tema: ThemeMode.dark);
@@ -89,18 +118,69 @@ void main() {
     await capturar(tester, '05_caja_nuevo_producto');
   });
 
-  testWidgets('caja conectar terminal', skip: omitir != null, (tester) async {
+  testWidgets('caja ficha de producto', skip: omitir != null, (tester) async {
     await montarApp(
       tester,
       preferencias: prefsCaja,
       tamano: ipad,
       tema: ThemeMode.light,
     );
-    await tester.tap(find.text('Conectar terminal').first);
+    await tester.tap(find.text('Catálogo').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Victoria Mega').first);
+    await capturar(tester, '16_caja_producto_ficha');
+  });
+
+  testWidgets('caja editar producto', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    await tester.tap(find.text('Catálogo').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Victoria Mega').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Editar producto'));
+    await capturar(tester, '17_caja_producto_editar');
+  });
+
+  testWidgets('caja importar inventario', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    final context = tester.element(find.byType(Scaffold).first);
+    unawaited(
+      showDialog<ResultadoImportacion>(
+        context: context,
+        builder: (_) => const DialogoImportarInventario(
+          nombreArchivo: 'inventario-2026-11-05.csv',
+          csv:
+              'codigo,nombre,categoria,precio,existencia\n'
+              '7501064191015,Victoria Mega,cerveza,42.00,80\n'
+              '7509999999999,Nueva Cerveza,cerveza,30,10\n',
+        ),
+      ),
+    );
+    await capturar(tester, '18_caja_importar_inventario');
+  });
+
+  testWidgets('caja vincular terminal', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    await tester.tap(find.text('Vincular Terminal').first);
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 500));
     // Sin pumpAndSettle: el diálogo tiene un reloj que nunca se detiene.
-    await capturar(tester, '06_caja_conectar_terminal', esperar: false);
+    await capturar(tester, '06_caja_vincular_terminal', esperar: false);
     // Cierra el diálogo para cancelar sus temporizadores.
     await tester.tap(find.byTooltip('Cerrar'));
     await tester.pumpAndSettle();
@@ -149,5 +229,73 @@ void main() {
     );
     await tester.tap(find.text('Escribir los datos a mano'));
     await capturar(tester, '10_terminal_vincular');
+  });
+
+  testWidgets('caja alertas', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    await tester.tap(find.text('Alertas').first);
+    await capturar(tester, '11_caja_alertas');
+  });
+
+  testWidgets('terminal pedido', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsTerminal,
+      tamano: telefono,
+      tema: ThemeMode.light,
+    );
+    await tester.enterText(find.byType(TextField), '7501064191015');
+    await tester.tap(find.text('Buscar'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Agregar 1 pieza'));
+    await tester.tap(find.text('Agregar 1 pieza'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pedido').last);
+    await capturar(tester, '12_terminal_pedido');
+  });
+
+  testWidgets('caja pedido pendiente', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      api: cajaConPedido(),
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    await capturar(tester, '13_caja_pedido_pendiente');
+  });
+
+  testWidgets('caja vender con pedido pendiente', skip: omitir != null, (
+    tester,
+  ) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      api: cajaConPedido(),
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    await tester.tap(find.text('Vender').first);
+    await capturar(tester, '14_caja_vender_pedido');
+  });
+
+  testWidgets('caja diagnóstico', skip: omitir != null, (tester) async {
+    await montarApp(
+      tester,
+      preferencias: prefsCaja,
+      tamano: ipad,
+      tema: ThemeMode.light,
+    );
+    await tester.tap(find.text('Ajustes').first);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Diagnóstico del servidor'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Diagnóstico del servidor'));
+    await capturar(tester, '15_caja_diagnostico');
   });
 }
